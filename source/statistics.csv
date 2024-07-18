@@ -1,0 +1,12 @@
+,show_id,type,title,director,cast,country,date_added,release_year,rating,duration,listed_in,description
+count,9668,9668,9668,7585,8435,672,155,9668.0,9331,9668,9668,9668
+unique,9668,2,9668,5773,7927,86,84,,24,219,518,9414
+top,s1,Movie,The Grand Seduction,Mark Knight,Maggie Binkley,United States,"March 30, 2021",,13+,1 Season,Drama,"Arpo was designed as a commando robot, built as a fierce fighting machine. But, with world peace achieved Arpo has been re-equipped for caregiving, re-coded for cuddling, and officially reassigned as a nanny robot! Arpo helps children age 4-8 build an understanding of non-verbal communication like body language and facial expressions. Enjoy Arpo's hilarious, slapstick funny cartoons for kids!"
+freq,1,7814,1,113,56,253,14,,2117,1342,986,15
+mean,,,,,,,,2008.3418494000828,,,,
+std,,,,,,,,18.922482069886854,,,,
+min,,,,,,,,1920.0,,,,
+25%,,,,,,,,2007.0,,,,
+50%,,,,,,,,2016.0,,,,
+75%,,,,,,,,2019.0,,,,
+max,,,,,,,,2021.0,,,,

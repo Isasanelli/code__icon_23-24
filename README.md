@@ -74,20 +74,20 @@ python -m spacy download en_core_web_md
 
 ## Come Eseguire il Progetto
 
-- eliminare i csv e png presenti nelle cartelle source e chart prima di eseguire il comando
+- eliminare i csv e png presenti nelle cartelle source e chart prima di eseguire i comandi: 
 
 ### 1. Analisi e Preprocessamento dei Dati
 
 Esegui `analyze_data.py` per analizzare e preprocessare i dati:
 
 ```bash
-python analyze_data.py
+python  .\scripts\analyze_data.py
 ```
 
 Esegui `preprocess_prime_dataset.py` per eseguire il preprocessamento specifico:
 
 ```bash
-python preprocess_prime_dataset.py
+python  .\scripts\preprocess_prime_dataset.py
 ```
 
 ### 2. Creazione di Embedding e Knowledge Graph
@@ -95,7 +95,7 @@ python preprocess_prime_dataset.py
 Esegui `create_embedding.py` per creare gli embeddings:
 
 ```bash
-python create_embedding.py
+python  .\scripts\create_embedding.py
 ```
 
 ### 3. Generazione di File Prolog e Creazione della Knowledge Base
@@ -103,13 +103,13 @@ python create_embedding.py
 Esegui `generate_prolog_files.py` per generare i file Prolog:
 
 ```bash
-python generate_prolog_files.py
+python  .\scripts\generate_prolog_files.py
 ```
 
 Esegui `knowledge_Base.py` per creare la knowledge base:
 
 ```bash
-python knowledge_Base.py
+python  .\scripts\knowledge_Base.py
 ```
 
 ### 4. Clustering Avanzato
@@ -117,7 +117,7 @@ python knowledge_Base.py
 Esegui `clustering.py` per eseguire il clustering avanzato:
 
 ```bash
-python clustering.py
+python  .\scripts\clustering.py
 ```
 
 ### 5. Apprendimento Supervisionato con Valutazione Appropriata
@@ -125,7 +125,7 @@ python clustering.py
 Esegui `supervised.py` per addestrare e valutare i modelli di apprendimento supervisionato:
 
 ```bash
-python supervised.py
+python  .\scripts\supervised.py
 ```
 
 ### 6. Integrazione di Conoscenza di Fondo (BK) dal Web Semantico
@@ -133,7 +133,7 @@ python supervised.py
 Esegui `integrate_bk.py` per integrare la conoscenza di fondo dal Web Semantico:
 
 ```bash
-python integrate_bk.py
+python  .\scripts\integrate_bk.py
 ```
 
 ### 7. Modelli di Apprendimento Probabilistico
@@ -141,7 +141,7 @@ python integrate_bk.py
 Esegui `reasoning.py` per implementare i modelli di apprendimento probabilistico:
 
 ```bash
-python reasoning.py
+python  .\scripts\reasoning.py
 ```
 
 ## Conclusioni

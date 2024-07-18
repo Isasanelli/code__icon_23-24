@@ -4,9 +4,9 @@ import os
 import matplotlib.pyplot as plt
 
 # Paths dei dataset
-PRIME_DATASET_PATH = "../source/amazon_prime_titles.csv"
-CLEAN_PRIME_PATH = "../source/titles_selected.csv"
-OUTPUT_CHARTS_PATH = "../charts"
+PRIME_DATASET_PATH = os.path.join(os.path.dirname(__file__), '..', 'source', 'amazon_prime_titles.csv')
+CLEAN_PRIME_PATH = os.path.join(os.path.dirname(__file__), '..', 'source', 'titles_selected.csv')
+OUTPUT_CHARTS_PATH = os.path.join(os.path.dirname(__file__), '..', 'charts', 'title_amazon_prime')
 
 # Estrae e pre-processa il dataset
 def extract_prime_dataset() -> pd.DataFrame:
