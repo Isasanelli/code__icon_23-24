@@ -116,6 +116,35 @@ Basti visitare il sito :
 Dopo aver installato SWI-Prolog, è necessario configurare la variabile d'ambiente SWI_HOME_DIR per puntare alla directory di installazione di SWI-Prolog.
 
 Configura la Variabile d'Ambiente SWI_HOME_DIR:
+Apri il Pannello di Controllo:
+
+Premi Win + R per aprire la finestra di dialogo Esegui.
+Digita control e premi Invio per aprire il Pannello di Controllo.
+
+Accedi alle Impostazioni di Sistema Avanzate:
+
+Nel Pannello di Controllo, cerca "Sistema" e aprilo.
+Nella finestra di Sistema, fai clic su "Impostazioni di sistema avanzate" nel menu a sinistra.
+
+Variabili d'Ambiente:
+
+Nella finestra di Proprietà del sistema, fai clic sul pulsante "Variabili d'ambiente".
+
+Aggiungi la Variabile SWI_HOME_DIR:
+
+Nella sezione "Variabili di sistema", fai clic su "Nuova".
+Nel campo "Nome variabile", inserisci SWI_HOME_DIR.
+Nel campo "Valore variabile", inserisci il percorso della directory di installazione di SWI-Prolog. Ad esempio, C:\Program Files\swipl.
+Fai clic su "OK" per salvare la variabile.
+
+Aggiungi il Percorso ai Path di Sistema:
+
+Nella sezione "Variabili di sistema", trova la variabile Path e selezionala.
+Fai clic su "Modifica".
+Fai clic su "Nuovo" e inserisci il percorso della directory bin di SWI-Prolog. 
+
+Ad esempio -- > C:\Program Files\swipl\bin.
+Fai clic su "OK" per salvare le modifiche.
     
 - Apri il terminale PowerShell come amministratore.
 - Imposta la variabile d'ambiente per puntare alla directory di installazione di 
