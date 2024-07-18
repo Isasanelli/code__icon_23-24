@@ -1,0 +1,12 @@
+pandas
+numpy
+spacy
+tensorflow
+nltk
+scikit-learn
+matplotlib
+rdflib
+pyswip
+pgmpy
+SPARQLWrapper
+openpyxl
