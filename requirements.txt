@@ -10,3 +10,5 @@ pyswip
 pgmpy
 SPARQLWrapper
 openpyxl
+wordcloud
+seaborn
