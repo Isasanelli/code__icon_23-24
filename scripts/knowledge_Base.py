@@ -1,49 +1,60 @@
 import os
-import time
-import pandas as pd
-
-# Configura manualmente il percorso di SWI-Prolog
-os.environ['SWI_HOME_DIR'] = r'C:\Program Files\swipl'
-os.environ['PATH'] += os.pathsep + r'C:\Program Files\swipl\bin'
-
 from pyswip import Prolog
-
-def assert_location_facts(kb):
-    with open("file_prolog/prime_locations.pl", "r") as loc_file:
-        lines = loc_file.readlines()
-        for line in lines:
-            kb.assertz(line.strip())
 
 def create_kb() -> Prolog:
     prolog = Prolog()
-    prolog.consult("file_prolog/prime_facts.pl")
-    assert_location_facts(prolog)
+    base_path = os.path.dirname(__file__)
+    
+    # Ensure the paths are absolute and adjust for Prolog syntax
+    facts_path = os.path.abspath(os.path.join(base_path, "..", "file_prolog", "prime_facts.pl")).replace("\\", "/")
+    locations_path = os.path.abspath(os.path.join(base_path, "..", "file_prolog", "prime_locations.pl")).replace("\\", "/")
+
+    if not os.path.exists(facts_path):
+        raise FileNotFoundError(f"Il file {facts_path} non esiste.")
+    if not os.path.exists(locations_path):
+        raise FileNotFoundError(f"Il file {locations_path} non esiste.")
+
+    try:
+        prolog.consult(facts_path)
+        prolog.consult(locations_path)
+        print("Files consulted successfully.")
+    except Exception as e:
+        print(f"Error consulting files: {e}")
+
     return prolog
 
-def calculate_features(kb, title_id) -> dict:
-    features_dict = {}
-    features_dict["title"] = title_id
-    title_id = f"'{title_id}'"
-    features_dict["same_director"] = len(list(kb.query(f'same_director({title_id}, T2)')))
-    features_dict["same_title"] = len(list(kb.query(f'same_title({title_id}, T2)')))
-    return features_dict
+def execute_queries(prolog):
+    # Esempio di query: Trova tutti i film del 2019
+    query1 = list(prolog.query("fact(Title, 2019, Genre)"))
+    print(f"Film del 2019: {len(query1)} trovati")
+    
+    # Esempio di query: Trova tutti i film del genere 'Comedy'
+    query2 = list(prolog.query("fact(Title, Year, 'Comedy')"))
+    print(f"Film di genere 'Comedy': {len(query2)} trovati")
 
-def produce_working_dataset(kb: Prolog, path: str):
-    print(f"Producing dataset at {path}")
-    start = time.time()
-    titles_complete = pd.read_csv("source/titles_selected.csv")
-    extracted_values_df = None
-    first = True
-    for title_id in titles_complete["Title"]:
-        features_dict = calculate_features(kb, title_id)
-        if first:
-            extracted_values_df = pd.DataFrame([features_dict])
-            first = False
-        else:
-            extracted_values_df = pd.concat([extracted_values_df, pd.DataFrame([features_dict])], ignore_index=True)
-    extracted_values_df.to_csv(path, index=False)
-    end = time.time()
-    print("Total time: ", end-start)
+    # Esempio di query: Trova tutte le location in 'United States'
+    query3 = list(prolog.query("location(Title, 'United States', Date)"))
+    print(f"Film localizzati in 'United States': {len(query3)} trovati")
 
-knowledge_base = create_kb()
-produce_working_dataset(knowledge_base, "source/working_dataset.csv")
+    # Esempio di query: Trova tutti i film del '2021'
+    query4 = list(prolog.query("fact(Title, Year, Genre), sub_atom(Year, 0, 4, _, '2021')"))
+    print(f"Film del  2021: {len(query4)} trovati")
+
+    # Esempio di query: Trova tutti i film del '2021' in 'United States'
+    query5 = list(prolog.query("fact(Title, Year, Genre), sub_atom(Year, 0, 4, _, '2021'), location(Title, 'United States', Date)"))
+    print(f"Film del 2021 in 'United States': {len(query5)} trovati")
+
+    
+
+def main():
+    try:
+        kb = create_kb()
+        print("Knowledge Base creata con successo.")
+        
+        execute_queries(kb)
+        
+    except Exception as e:
+        print(f"Errore durante la creazione della Knowledge Base: {e}")
+
+if __name__ == "__main__":
+    main()

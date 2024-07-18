@@ -7,13 +7,13 @@ location('Living With Dinosaurs', 'United Kingdom', 'March 30, 2021').
 location('Hired Gun', 'United States', 'March 30, 2021').
 location('Grease Live!', 'United States', 'March 30, 2021').
 location('Global Meltdown', 'Canada', 'March 30, 2021').
-location('David's Mother', 'United States', 'April 1, 2021').
+location('David\'s Mother', 'United States', 'April 1, 2021').
 location('Forest Fairies', 'Canada', 'April 4, 2021').
 location('Take Care', 'United States', 'April 10, 2021').
 location('The Night Eats The World', 'France', 'April 17, 2021').
 location('Resilencia', 'Spain', 'April 24, 2021').
 location('Elon Musk: The Real Life Iron Man', 'United Kingdom', 'May 2, 2021').
-location('Summer '03', 'United States', 'June 3, 2021').
+location('Summer \'03', 'United States', 'June 3, 2021').
 location('The Family Man', 'India', 'May 19, 2021').
 location('Bosch', 'United States', 'June 3, 2021').
 location('Making the Cut', 'United States', 'June 11, 2021').
