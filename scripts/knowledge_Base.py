@@ -1,16 +1,22 @@
+import os
 import time
 import pandas as pd
+
+# Configura manualmente il percorso di SWI-Prolog
+os.environ['SWI_HOME_DIR'] = r'C:\Program Files\swipl'
+os.environ['PATH'] += os.pathsep + r'C:\Program Files\swipl\bin'
+
 from pyswip import Prolog
 
 def assert_location_facts(kb):
-    with open("source/prime_locations.pl", "r") as loc_file:
+    with open("file_prolog/prime_locations.pl", "r") as loc_file:
         lines = loc_file.readlines()
         for line in lines:
             kb.assertz(line.strip())
 
 def create_kb() -> Prolog:
     prolog = Prolog()
-    prolog.consult("source/prime_facts.pl")
+    prolog.consult("file_prolog/prime_facts.pl")
     assert_location_facts(prolog)
     return prolog
 

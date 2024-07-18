@@ -1,6 +1,16 @@
 import os
 import pandas as pd
 
+
+def clean_data(df):
+    # Rimuovi duplicati
+    df = df.drop_duplicates()
+    # Rimuovi righe con valori NaN
+    df = df.dropna()
+    # Sostituisci caratteri speciali nei campi di testo
+    df = df.replace({"'": "\\'"}, regex=True)
+    return df
+
 def generate_facts_pl(dataset):
     os.makedirs('file_prolog', exist_ok=True)
     with open('file_prolog/prime_facts.pl', 'w', encoding='utf-8') as file:

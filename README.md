@@ -106,8 +106,24 @@ Esegui `generate_prolog_files.py` per generare i file Prolog:
 python  .\scripts\generate_prolog_files.py
 ```
 
-Esegui `knowledge_Base.py` per creare la knowledge base:
+Esegui `knowledge_Base.py` per creare la knowledge base.
 
+Prima di eseguire il file, è importante aver installato SWI-Prolog
+Basti visitare il sito : 
+
+<https://www.swi-prolog.org/download/stable> 
+
+Dopo aver installato SWI-Prolog, è necessario configurare la variabile d'ambiente SWI_HOME_DIR per puntare alla directory di installazione di SWI-Prolog.
+
+Configura la Variabile d'Ambiente SWI_HOME_DIR:
+    
+- Apri il terminale PowerShell come amministratore.
+- Imposta la variabile d'ambiente per puntare alla directory di installazione di 
+SWI-Prolog:
+```bash
+[System.Environment]::SetEnvironmentVariable('SWI_HOME_DIR', 'C:\Program Files\swipl', 'Machine')
+```
+Esegui KB: 
 ```bash
 python  .\scripts\knowledge_Base.py
 ```
