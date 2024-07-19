@@ -113,7 +113,7 @@ Basti visitare il sito :
 
 <https://www.swi-prolog.org/download/stable> 
 
-Dopo aver installato SWI-Prolog, è necessario configurare la variabile d'ambiente SWI_HOME_DIR per puntare alla directory di installazione di SWI-Prolog.
+Dopo aver installato SWI-Prolog ( versione 8.0.3), è necessario configurare la variabile d'ambiente SWI_HOME_DIR per puntare alla directory di installazione di SWI-Prolog.
 
 Configura la Variabile d'Ambiente SWI_HOME_DIR:
 Apri il Pannello di Controllo:
@@ -147,12 +147,14 @@ Ad esempio -- > C:\Program Files\swipl\bin.
 Fai clic su "OK" per salvare le modifiche.
     
 - Apri il terminale PowerShell come amministratore.
-- Imposta la variabile d'ambiente per puntare alla directory di installazione di 
-SWI-Prolog:
+- Imposta la variabile d'ambiente per puntare alla directory di installazione di  SWI-Prolog:
+  
 ```bash
 [System.Environment]::SetEnvironmentVariable('SWI_HOME_DIR', 'C:\Program Files\swipl', 'Machine')
 ```
-Esegui KB: 
+
+Esegui KB:
+
 ```bash
 python  .\scripts\knowledge_Base.py
 ```

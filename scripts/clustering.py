@@ -71,24 +71,27 @@ def final_cluster():
 
     df_statistics = []
     for i in range(0, n):
-        df_statistics.append(complete_df.loc[complete_df["Cluster"] == i])
+        df_statistics.append(complete_df.loc[complete_df["Cluster"] == i].copy())
         statistics_path = os.path.join(script_dir, f"../source/Statistiche_Cluster_{i}.csv")
-        complete_df.loc[complete_df["Cluster"] == i].describe().to_csv(statistics_path)
-        sns.heatmap(df_statistics[i].corr())
-        heatmap_path = os.path.join(script_dir, f"../charts/clustering/Heatmap_Cluster_{i}.png")
-        plt.title(f"Heatmap della correlazione per Cluster {i}")
-        plt.savefig(heatmap_path)
-        plt.close()
+        df_statistics[i].describe().to_csv(statistics_path)
+        
+        # Rimuovere le colonne non numeriche per la heatmap
+        numeric_df = df_statistics[i].select_dtypes(include=['float64', 'int64'])
+        if not numeric_df.empty:
+            correlation = numeric_df.corr()
+            sns.heatmap(correlation, annot=True, fmt='.2f', cmap='coolwarm')
+            heatmap_path = os.path.join(script_dir, f"../charts/clustering/Heatmap_Cluster_{i}.png")
+            plt.title(f"Heatmap della correlazione per Cluster {i}")
+            plt.savefig(heatmap_path)
+            plt.close()
 
-    df_statistics[0] = df_statistics[0].drop(["Cluster"], axis=1)
-    df_statistics[1] = df_statistics[1].drop(["Cluster"], axis=1)
-    df_statistics[2] = df_statistics[2].drop(["Cluster"], axis=1)
-    df_statistics[3] = df_statistics[3].drop(["Cluster"], axis=1)
+    for df_stat in df_statistics:
+        df_stat.drop(["Cluster"], axis=1, inplace=True)
 
     columns.remove("Cluster")
 
     for col in columns:
-        f, p = stats.f_oneway(df_statistics[0][col].values, df_statistics[1][col].values, df_statistics[2][col].values, df_statistics[3][col].values)
+        f, p = stats.f_oneway(*(df_stat[col].dropna().values for df_stat in df_statistics))
         if p < 0.05:  # hp
             print(f"Dati diversi per colonna: {col}, valori: F={f}, p={p}")
         else:
