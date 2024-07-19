@@ -175,22 +175,6 @@ Esegui `supervised.py` per addestrare e valutare i modelli di apprendimento supe
 python  .\scripts\supervised.py
 ```
 
-### 6. Integrazione di Conoscenza di Fondo (BK) dal Web Semantico
-
-Esegui `integrate_bk.py` per integrare la conoscenza di fondo dal Web Semantico:
-
-```bash
-python  .\scripts\integrate_bk.py
-```
-
-### 7. Modelli di Apprendimento Probabilistico
-
-Esegui `reasoning.py` per implementare i modelli di apprendimento probabilistico:
-
-```bash
-python  .\scripts\reasoning.py
-```
-
 ## Conclusioni
 
 Questo progetto integra vari aspetti avanzati del programma di insegnamento, fornendo un approccio completo e dinamico all'integrazione di ontologie, apprendimento supervisionato e non supervisionato, ragionamento probabilistico e modelli neurali. Ogni passo è documentato e i codici possono essere eseguiti seguendo le istruzioni sopra fornite.
