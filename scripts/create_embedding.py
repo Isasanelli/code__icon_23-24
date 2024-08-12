@@ -1,58 +1,62 @@
 import os
 import pandas as pd
-from embedding import Embedding
-from multiprocessing import Pool
+import numpy as np
+from gensim.models import Word2Vec
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 
 # Percorso del file CSV con i titoli di Amazon Prime
-file_path = 'source/amazon_prime_titles.csv'
+PRIME_DATASET_PATH = 'source/amazon_prime_titles.csv'
+EMBEDDINGS_PATH = 'source/embeddings/embeddings_word2vec.csv'
+PCA_IMAGE_PATH = 'charts/embeddings/embedding_pca.png'
 
-# Leggi il dataset
-dataset = pd.read_csv(file_path)
+# Assicurati che le directory esistano
+os.makedirs(os.path.dirname(EMBEDDINGS_PATH), exist_ok=True)
+os.makedirs(os.path.dirname(PCA_IMAGE_PATH), exist_ok=True)
 
-# Estrarre i titoli dei film
-documents = dataset['Title'].astype(str).tolist()
+# Carica il dataset
+dataset = pd.read_csv(PRIME_DATASET_PATH)
 
-# Rimuovere titoli duplicati
-documents = list(set(documents))
+# Estrai i titoli dei film
+documents = dataset['title'].astype(str).tolist()
 
-# Normalizzare i titoli: tutto minuscolo e rimozione di caratteri speciali
-documents = [doc.lower().strip() for doc in documents if pd.notnull(doc)]
+# Rimuovi titoli duplicati e normalizza i testi
+documents = [doc.lower().strip() for doc in set(documents)]
 
-# Crea embeddings
-embedding = Embedding()
+# Tokenizzazione dei titoli per Word2Vec
+tokenized_docs = [doc.split() for doc in documents]
 
-# Funzione per generare embeddings in parallelo
-def generate_embeddings(documents):
-    with Pool() as pool:
-        embeddings = pool.map(embedding.build_embedding, [doc for doc in documents if doc])
-    return embeddings
+# Creazione del modello Word2Vec
+model = Word2Vec(sentences=tokenized_docs, vector_size=50, window=5, min_count=1, workers=4)
 
-# Genera gli embeddings
-embeddings = generate_embeddings(documents)
+# Costruzione degli embeddings per ciascun titolo
+embeddings = []
+for doc in tokenized_docs:
+    vector = np.mean([model.wv[word] for word in doc if word in model.wv], axis=0)
+    embeddings.append(vector)
 
-# Rinominare le colonne degli embeddings
-column_names = [f'embedding_{i}' for i in range(len(embeddings[0]))]
-embeddings_df = pd.DataFrame(embeddings, columns=column_names)
+# Converti gli embeddings in un DataFrame
+embedding_df = pd.DataFrame(embeddings, columns=[f'embedding_{i}' for i in range(model.vector_size)])
+embedding_df['title'] = documents
 
-# Aggiungi i titoli come colonna
-embeddings_df['Title'] = [doc for doc in documents if doc]
+# Salva gli embeddings in un file CSV
+embedding_df.to_csv(EMBEDDINGS_PATH, index=False)
+print(f"Embeddings salvati in {EMBEDDINGS_PATH}")
 
-# Salva embeddings in un file CSV
-output_file = 'path_to_your_dataset/embeddings.csv'
-embeddings_df.to_csv(output_file, index=False)
-
-print(f"Embeddings salvati in {output_file}")
-
-# Visualizzazione degli embeddings con PCA
+# Riduzione della dimensionalità con PCA
 pca = PCA(n_components=2)
 reduced_embeddings = pca.fit_transform(embeddings)
 
+# Visualizzazione degli embeddings ridotti
 plt.figure(figsize=(10, 6))
 plt.scatter(reduced_embeddings[:, 0], reduced_embeddings[:, 1], alpha=0.5)
 plt.title('PCA of Embeddings')
 plt.xlabel('PCA 1')
 plt.ylabel('PCA 2')
 plt.grid(True)
+
+# Salva il grafico PCA
+plt.savefig(PCA_IMAGE_PATH)
 plt.show()
+
+print(f"Grafico PCA salvato in {PCA_IMAGE_PATH}")

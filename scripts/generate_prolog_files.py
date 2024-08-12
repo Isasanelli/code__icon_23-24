@@ -57,8 +57,8 @@ def main():
     locations_dataset = dataset[['title', 'country', 'date_added']]
     
     # Genera i file Prolog
-    generate_facts_pl(facts_dataset, os.path.join(prolog_dir, 'prime_facts.pl'))
-    generate_locations_pl(locations_dataset, os.path.join(prolog_dir, 'prime_locations.pl'))
+    generate_facts_pl(facts_dataset, os.path.join(prolog_dir, 'prolog' ,'prime_facts.pl'))
+    generate_locations_pl(locations_dataset, os.path.join(prolog_dir, 'prolog' ,'prime_locations.pl'))
     
     print("Generazione file Prolog completata.")
 

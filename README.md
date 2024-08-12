@@ -53,12 +53,6 @@ Poi, installa tutte le dipendenze usando pip:
 pip install -r requirements.txt
 ```
 
-Inoltre, scarica il modello linguistico di spaCy:
-
-```bash
-python -m spacy download en_core_web_md
-```
-
 ## Struttura dei File
 
 - `analyze_data.py` : Analisi e preprocessamento dei dati.
@@ -69,8 +63,7 @@ python -m spacy download en_core_web_md
 - `knowledge_Base.py` : Creazione della knowledge base.
 - `clustering.py` : Clustering avanzato.
 - `supervised.py` : Apprendimento supervisionato con valutazione appropriata.
-- `integrate_bk.py`: Integrazione di conoscenza di fondo dal Web Semantico.
-- `reasoning.py` : Modelli di apprendimento probabilistico.
+.
 
 ## Come Eseguire il Progetto
 
@@ -91,6 +84,7 @@ python  .\scripts\preprocess_prime_dataset.py
 ```
 
 ### 2. Creazione di Embedding e Knowledge Graph
+
 
 Esegui `create_embedding.py` per creare gli embeddings:
 
