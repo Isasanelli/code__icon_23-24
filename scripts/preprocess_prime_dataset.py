@@ -8,76 +8,46 @@ PRIME_DATASET_PATH = os.path.join(os.path.dirname(__file__), '..', 'source', 'am
 CLEAN_PRIME_PATH = os.path.join(os.path.dirname(__file__), '..', 'source', 'titles_selected.csv')
 OUTPUT_CHARTS_PATH = os.path.join(os.path.dirname(__file__), '..', 'charts', 'title_amazon_prime')
 
-# Estrae e pre-processa il dataset
 def extract_prime_dataset() -> pd.DataFrame:
-    df: pd.DataFrame = pd.read_csv(PRIME_DATASET_PATH)
+    """Estrae il dataset dal file CSV."""
+    if not os.path.exists(PRIME_DATASET_PATH):
+        raise FileNotFoundError(f"Il file {PRIME_DATASET_PATH} non esiste.")
+    
+    df = pd.read_csv(PRIME_DATASET_PATH)
     return df
 
 def preprocess_prime_dataset(extracted_df: pd.DataFrame) -> pd.DataFrame:
+    """Preprocessa il dataset rimuovendo colonne non necessarie e duplicati."""
     # Rimozione delle colonne non necessarie
-    col_del = ['show_id', 'type', 'country', 'date_added', 'release_year', 'rating', 'duration', 'listed_in', 'description']
-
-    # Rinomina colonne
-    col_ren = {'title': 'Title', 'director': 'Director'}
+    col_del = ['show_id', 'rating', 'description', 'type']
+    col_ren = {'title': 'Title', 'director': 'Director', 'release_year': 'Year', 'country': 'Country', 'date_added': 'Date_Added'}
 
     extracted_df.rename(columns=col_ren, inplace=True)
-    extracted_df = extracted_df.drop(col_del, axis=1)
+    extracted_df = extracted_df.drop(columns=col_del, axis=1)
 
-    # Trasformazione delle stringhe in minuscolo
+    # Rimozione dei titoli duplicati
+    extracted_df.drop_duplicates(subset=['Title', 'Director'], inplace=True)
+
+    # Trasformazione delle stringhe in minuscolo e rimozione dei caratteri speciali
     extracted_df = adjust_string_columns(extracted_df, except_columns=["Title", "Director"])
 
     return extracted_df
 
 def adjust_string_columns(df: pd.DataFrame, except_columns=None) -> pd.DataFrame:
+    """Converte le stringhe delle colonne in minuscolo, tranne quelle specificate."""
     if except_columns is None:
         except_columns = []
 
     for col_name, col_data in df.items():
-        if pd.api.types.is_string_dtype(col_data) and (col_name not in except_columns):
-            df[col_name] = col_data.str.lower().apply(lambda x: ''.join(['_' if not c.isalnum() else c for c in x]))
+        if pd.api.types.is_string_dtype(col_data) and col_name not in except_columns:
+            df[col_name] = col_data.str.lower().str.replace(r'\W+', '_', regex=True)
     return df
 
-def generate_charts(df: pd.DataFrame):
-    os.makedirs(OUTPUT_CHARTS_PATH, exist_ok=True)
-
-    # Grafico a barre del numero di titoli per regista
-    top_directors = df['Director'].value_counts()
-    top_directors = top_directors[top_directors.index != '1'].head(10)  # Escludi '1' dalla lista
-    plt.figure(figsize=(12, 8))
-    bars = plt.bar(top_directors.index, top_directors.values, edgecolor='black', color='skyblue')
-    plt.title('Top 10 Registi con Più Titoli su Amazon Prime', fontsize=16)
-    plt.xlabel('Regista', fontsize=14)
-    plt.ylabel('Numero di Titoli', fontsize=14)
-    plt.xticks(rotation=45, ha='right', fontsize=12)
-    plt.yticks(fontsize=12)
-    plt.grid(axis='y', linestyle='--', linewidth=0.7)
-    plt.tight_layout()
-    for bar in bars:
-        yval = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width()/2, yval, int(yval), ha='center', va='bottom', fontsize=12)
-    plt.savefig(os.path.join(OUTPUT_CHARTS_PATH, 'top_directors.png'))
-    plt.close()
-
-    # Istogramma della lunghezza dei titoli
-    title_lengths = df['Title'].apply(len)
-    plt.figure(figsize=(12, 8))
-    plt.hist(title_lengths, bins=30, edgecolor='black', color='skyblue')
-    plt.title('Distribuzione della Lunghezza dei Titoli su Amazon Prime', fontsize=16)
-    plt.xlabel('Lunghezza del Titolo (numero di caratteri)', fontsize=14)
-    plt.ylabel('Numero di Titoli', fontsize=14)
-    plt.xticks(fontsize=12)
-    plt.yticks(fontsize=12)
-    plt.grid(axis='y', linestyle='--', linewidth=0.7)
-    plt.tight_layout()
-    plt.savefig(os.path.join(OUTPUT_CHARTS_PATH, 'title_lengths.png'))
-    plt.close()
-
-def main():
-    extracted_df = extract_prime_dataset()
-    clean_df: pd.DataFrame = preprocess_prime_dataset(extracted_df)
-    clean_df.to_csv(CLEAN_PRIME_PATH, index=False)
-    generate_charts(clean_df)
-    print(f"Preprocessamento completato. Il dataset pulito è stato salvato in '{CLEAN_PRIME_PATH}'. Le visualizzazioni grafiche sono state salvate nella cartella '{OUTPUT_CHARTS_PATH}'.")
-
 if __name__ == "__main__":
-    main()
+    try:
+        extracted_df = extract_prime_dataset()
+        clean_df = preprocess_prime_dataset(extracted_df)
+        clean_df.to_csv(CLEAN_PRIME_PATH, index=False)
+        print(f"Preprocessamento completato. Il dataset pulito è stato salvato in '{CLEAN_PRIME_PATH}'.")
+    except Exception as e:
+        print(f"Errore durante l'analisi: {e}")

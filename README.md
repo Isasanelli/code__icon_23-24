@@ -3,7 +3,7 @@
 
 ## Descrizione del Progetto
 
-Questo progetto mira a sviluppare un sistema di raccomandazione di film utilizzando i titoli di Amazon Prime, integrando tecniche di rappresentazione della conoscenza, machine learning, ragionamento probabilistico e ontologie.
+Questo progetto mira a sviluppare un sistema di raccomandazione di film utilizzando i titoli di Amazon Prime, integrando tecniche di rappresentazione della conoscenza, machine learning, ragionamento probabilistico e ontologie. L'obiettivo è creare un sistema che combini modelli supervisionati e non supervisionati con tecniche avanzate di clustering e embedding, arricchito dall'integrazione di conoscenza di fondo proveniente dal Web Semantico.
 
 ## Struttura del Progetto
 
@@ -61,16 +61,16 @@ python -m spacy download en_core_web_md
 
 ## Struttura dei File
 
-- `analyze_data.py`: Analisi e preprocessamento dei dati.
-- `preprocess_prime_dataset.py`: Preprocessamento specifico e pulizia dei dati.
-- `create_embedding.py`: Creazione degli embeddings.
-- `embedding.py`: Classe per la generazione degli embeddings.
-- `generate_prolog_files.py`: Generazione dei file Prolog.
-- `knowledge_Base.py`: Creazione della knowledge base.
-- `clustering.py`: Clustering avanzato.
-- `supervised.py`: Apprendimento supervisionato con valutazione appropriata.
-- `reasoning.py`: Modelli di apprendimento probabilistico.
+- `analyze_data.py` : Analisi e preprocessamento dei dati.
+- `preprocess_prime_dataset.py` : Preprocessamento specifico e pulizia dei dati.
+- `create_embedding.py` : Creazione degli embeddings.
+- `embedding.py` : Classe per la generazione degli embeddings.
+- `generate_prolog_files.py` : Generazione dei file Prolog.
+- `knowledge_Base.py` : Creazione della knowledge base.
+- `clustering.py` : Clustering avanzato.
+- `supervised.py` : Apprendimento supervisionato con valutazione appropriata.
 - `integrate_bk.py`: Integrazione di conoscenza di fondo dal Web Semantico.
+- `reasoning.py` : Modelli di apprendimento probabilistico.
 
 ## Come Eseguire il Progetto
 
@@ -181,8 +181,8 @@ Questo progetto integra vari aspetti avanzati del programma di insegnamento, for
 
 ## Autore
 
-Ilenia Sasanelli 
-Ruggiero Moschese
+- Ilenia Sasanelli 
+- Ruggiero Moschese
 
 ## Licenza
 

@@ -1,61 +1,58 @@
-import os
 import pandas as pd
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, accuracy_score, roc_auc_score, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
-from sklearn.preprocessing import StandardScaler
 
-script_dir = os.path.dirname(__file__)
+KNOWLEDGE_BASE_PATH = "../source/knowledge_base.csv"
 
-# Carica i dati
-dataset_path = os.path.join(script_dir, '../source/dataset_clustered.csv')
-df = pd.read_csv(dataset_path)
-X = df.drop(['title', 'Cluster'], axis=1)
-y = df['Cluster']
+def load_data() -> pd.DataFrame:
+    """Carica i dati dalla Knowledge Base."""
+    return pd.read_csv(KNOWLEDGE_BASE_PATH)
 
-# Divide i dati in set di addestramento e test
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+def train_model(df: pd.DataFrame):
+    """Addestra il modello di classificazione."""
+    # Aggiunta di altre feature per migliorare la classificazione
+    X = df[['same_director', 'similarity_score', 'Year', 'Country', 'Date_Added']]
+    
+    # Sostituisci 'same_director' con la feature target che desideri classificare
+    y = df['same_director']  # Modifica questo per usare il target corretto
 
-# Scala i dati
-scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
+    # Converti le feature categoriali in dummy variables (one-hot encoding)
+    X = pd.get_dummies(X, columns=['Country', 'Date_Added'], drop_first=True)
 
-# Addestra il modello
-model = LogisticRegression(max_iter=5000)
-model.fit(X_train_scaled, y_train)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Predice le etichette per il set di test
-y_pred = model.predict(X_test_scaled)
+    # Modello RandomForest con tuning degli iperparametri
+    param_grid = {
+        'n_estimators': [50, 100, 200],
+        'max_depth': [None, 10, 20, 30],
+        'min_samples_split': [2, 5, 10]
+    }
+    rf = RandomForestClassifier(random_state=42)
+    grid_search = GridSearchCV(rf, param_grid, cv=5, scoring='roc_auc', n_jobs=-1)
+    grid_search.fit(X_train, y_train)
 
-# Genera la matrice di confusione
-cm = confusion_matrix(y_test, y_pred)
-plt.figure(figsize=(10, 7))
-sns.heatmap(cm, annot=True, fmt='g', cmap='Blues')
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.title('Confusion Matrix')
-conf_matrix_path = os.path.join(script_dir, '../charts/supervised/confusion_matrix.png')
-plt.savefig(conf_matrix_path)
-plt.close()
+    best_model = grid_search.best_estimator_
+    y_pred = best_model.predict(X_test)
 
-# Calcola l'accuratezza e il report di classificazione
-acc_score = accuracy_score(y_test, y_pred)
-class_report = classification_report(y_test, y_pred)
+    print(f"Best Parameters: {grid_search.best_params_}")
+    print(f"Accuracy: {accuracy_score(y_test, y_pred)}")
+    print(f"ROC-AUC: {roc_auc_score(y_test, best_model.predict_proba(X_test)[:, 1])}")
+    print(classification_report(y_test, y_pred))
 
-# Salva il risultato in un file di testo
-result_text_path = os.path.join(script_dir, '../charts/supervised/classification_report.txt')
-with open(result_text_path, 'w') as f:
-    f.write('Confusion Matrix:\n')
-    f.write(f'{cm}\n\n')
-    f.write('Classification Report:\n')
-    f.write(f'{class_report}\n\n')
-    f.write(f'Accuracy Score: {acc_score}\n')
+    # Confusion Matrix
+    cm = confusion_matrix(y_test, y_pred)
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+    plt.title('Confusion Matrix')
+    plt.ylabel('True Label')
+    plt.xlabel('Predicted Label')
+    plt.show()
 
-print('Confusion Matrix:')
-print(cm)
-print('\nClassification Report:')
-print(class_report)
-print(f'\nAccuracy Score: {acc_score}\n')
+def main():
+    df = load_data()
+    train_model(df)
+
+if __name__ == "__main__":
+    main()
