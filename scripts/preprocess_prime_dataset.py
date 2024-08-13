@@ -3,6 +3,17 @@ import pandas as pd
 import os
 from sklearn.preprocessing import OneHotEncoder
 import numpy as np
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+
+# Scarica le risorse necessarie per NLTK
+nltk.download('stopwords')
+nltk.download('wordnet')
+
+# Inizializza le risorse per pre-processing
+lemmatizer = WordNetLemmatizer()
+stop_words = set(stopwords.words('english'))
 
 # Paths dei dataset
 PRIME_DATASET_PATH = os.path.join(os.path.dirname(__file__), '..', 'source', 'amazon_prime_titles.csv')
@@ -22,7 +33,7 @@ def extract_prime_dataset() -> pd.DataFrame:
 
 def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
     """Gestisce i valori mancanti nel dataset."""
-    # Rimuovi righe con valori mancanti significativi
+    # Rimuove righe con valori mancanti significativi
     df.dropna(subset=['Title', 'Director', 'release_year'], inplace=True)
 
     # Imputazione dei valori mancanti
@@ -31,19 +42,27 @@ def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
 
     return df
 
+def preprocess_text(text: str) -> str:
+    """Preprocessa il testo rimuovendo stopwords e applicando la lemmatizzazione."""
+    words = text.lower().split()
+    words = [lemmatizer.lemmatize(word) for word in words if word not in stop_words]
+    return " ".join(words)
+
 def adjust_string_columns(df: pd.DataFrame, except_columns=None) -> pd.DataFrame:
-    """Converte le stringhe delle colonne in minuscolo, tranne quelle specificate."""
+    """Converte le stringhe delle colonne in minuscolo, tranne quelle specificate, ed effettua il pre-processing del testo."""
     if except_columns is None:
         except_columns = []
 
     for col_name, col_data in df.items():
         if pd.api.types.is_string_dtype(col_data) and col_name not in except_columns:
             df[col_name] = col_data.str.lower().str.replace(r'\W+', '_', regex=True)
+        if col_name == 'Title':  # Applica il pre-processing avanzato solo alla colonna 'Title'
+            df[col_name] = df[col_name].apply(preprocess_text)
     return df
 
 def encode_categorical_columns(df: pd.DataFrame, columns: list) -> pd.DataFrame:
     """Applica one-hot encoding alle variabili categoriali."""
-    encoder = OneHotEncoder(sparse_output=False)  # Usa sparse_output invece di sparse
+    encoder = OneHotEncoder(sparse_output=False)
     for col in columns:
         encoded = encoder.fit_transform(df[[col]])
         encoded_df = pd.DataFrame(encoded, columns=encoder.get_feature_names_out([col]))
@@ -78,7 +97,7 @@ def preprocess_prime_dataset(extracted_df: pd.DataFrame) -> pd.DataFrame:
     # Gestione dei valori mancanti
     extracted_df = handle_missing_values(extracted_df)
 
-    # Trasformazione delle stringhe in minuscolo e rimozione dei caratteri speciali
+    # Trasformazione delle stringhe in minuscolo e rimozione dei caratteri speciali, con pre-processing avanzato sui titoli
     extracted_df = adjust_string_columns(extracted_df, except_columns=["Title", "Director"])
 
     # Codifica delle variabili categoriali (es. Country, Genre)

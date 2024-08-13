@@ -1,41 +1,82 @@
+import time
 import pandas as pd
 import os
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 
-PRIME_DATASET_PATH = os.path.join(os.path.dirname(__file__), '..', 'source', 'preprocessed', 'titles_selected.csv')
-KNOWLEDGE_BASE_DIR = os.path.join(os.path.dirname(__file__), '..', 'source', 'kb')
-KNOWLEDGE_BASE_PATH = os.path.join(KNOWLEDGE_BASE_DIR, 'kb.csv')
+# Clausole definite per generi, location, anno e città
+def same_genre(kb, title1, title2) -> int:
+    return 1 if kb["genre"].get(title1) == kb["genre"].get(title2) else 0
 
-def load_dataset() -> pd.DataFrame:
-    """Carica il dataset preprocessato."""
-    df: pd.DataFrame = pd.read_csv(PRIME_DATASET_PATH)
-    return df
+def same_location(kb, title1, title2) -> int:
+    return 1 if kb["location"].get(title1) == kb["location"].get(title2) else 0
 
-def create_knowledge_base(df: pd.DataFrame) -> pd.DataFrame:
-    """Crea una Knowledge Base aggiungendo feature rilevanti."""
-    # Gestione dei valori mancanti o non validi nella colonna 'Title' e 'Director'
-    df['Title'] = df['Title'].fillna('').astype(str)
-    df['Director'] = df['Director'].fillna('').astype(str)
+def same_year(kb, title1, title2) -> int:
+    return 1 if kb["year"].get(title1) == kb["year"].get(title2) else 0
 
-    # Feature: se il regista è lo stesso per più titoli
-    df['same_director'] = df.groupby('Director')['Director'].transform(lambda x: (x != "").sum() > 1).astype(int)
+def same_city(kb, title1, title2) -> int:
+    return 1 if kb["city"].get(title1) == kb["city"].get(title2) else 0
 
-    # Feature: similarità tra titoli basata su TF-IDF
-    tfidf = TfidfVectorizer().fit_transform(df['Title'])
-    similarity_matrix = cosine_similarity(tfidf)
-    df['similarity_score'] = similarity_matrix.diagonal()  # Similarità di ogni titolo con se stesso, che sarà sempre 1
+# Funzione per creare il KB
+def create_kb(facts_df) -> dict:
+    kb = {
+        "genre": {},
+        "location": {},
+        "year": {},
+        "city": {}
+    }
 
-    return df
+    for index, row in facts_df.iterrows():
+        if pd.notnull(row['title']):
+            title = str(row['title']).lower().strip()
+            kb["genre"][title] = row['listed_in'].strip()
+            kb["location"][title] = "N/A"  # Nessuna colonna "country" nel DataFrame originale
+            kb["year"][title] = row['release_year']
+            kb["city"][title] = "N/A"  # Nessuna colonna "city" nel DataFrame originale
 
-def main():
-    # Creazione della directory se non esiste
-    os.makedirs(KNOWLEDGE_BASE_DIR, exist_ok=True)
+    return kb
 
-    df = load_dataset()
-    knowledge_df = create_knowledge_base(df)
-    knowledge_df.to_csv(KNOWLEDGE_BASE_PATH, index=False)
-    print(f"Knowledge base generata e salvata in '{KNOWLEDGE_BASE_PATH}'.")
+# Funzione per calcolare le feature
+def calculate_features(kb, title_id) -> dict:
+    features_dict = {}
+    another_title = 'another title'  # Puoi cambiare questo con un altro titolo di riferimento
 
-if __name__ == "__main__":
-    main()
+    features_dict["TITLE"] = title_id
+    features_dict["SAME_GENRE"] = same_genre(kb, title_id, another_title)
+    features_dict["SAME_LOCATION"] = same_location(kb, title_id, another_title)
+    features_dict["SAME_YEAR"] = same_year(kb, title_id, another_title)
+    features_dict["SAME_CITY"] = same_city(kb, title_id, another_title)
+
+    # Estrazione dei valori di YEAR e CITY dal knowledge base
+    features_dict["YEAR"] = kb["year"].get(title_id, "N/A")
+    features_dict["CITY"] = kb["city"].get(title_id, "N/A")
+
+    return features_dict
+
+# Funzione per produrre il dataset finale
+def produce_working_dataset(kb: dict, path: str):
+    print(f"Producing dataset at {path}")
+    start = time.time()
+    
+    titles_complete: pd.DataFrame = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'source', 'preprocessed', 'titles_selected.csv'))
+    titles_complete.columns = titles_complete.columns.str.lower()  # Converte tutte le colonne in minuscolo
+
+    extracted_values_df = pd.DataFrame()
+
+    for title_id in titles_complete["title"]:  # Ora la colonna "title" è assicurata di essere minuscola
+        if pd.notnull(title_id):
+            title_id = str(title_id).lower().strip()  # Normalizza il titolo
+            features_dict = calculate_features(kb, title_id)
+            extracted_values_df = pd.concat([extracted_values_df, pd.DataFrame([features_dict])], ignore_index=True)
+
+    extracted_values_df.to_csv(os.path.join(os.path.dirname(__file__), '..', 'source', 'kb', path), index=False)
+    end = time.time()
+    print("Total time: ", end-start)
+
+# Caricamento dei fatti dal dataset originale
+facts_df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'source', 'preprocessed', 'titles_selected.csv'))
+facts_df.columns = facts_df.columns.str.lower()  # Normalizza i nomi delle colonne in minuscolo
+
+# Creazione del knowledge base
+knowledge_base = create_kb(facts_df)
+
+# Produzione del dataset con le caratteristiche estratte
+produce_working_dataset(knowledge_base, "working_dataset.csv")

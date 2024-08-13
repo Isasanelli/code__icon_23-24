@@ -39,7 +39,10 @@ def main():
     # Configurazione dei percorsi dei file
     base_dir = os.path.dirname(__file__)
     data_dir = os.path.join(base_dir, '..', 'source')
-    prolog_dir = os.path.join(base_dir, '..', 'file_prolog')
+    prolog_dir = os.path.join(base_dir, '..', 'file_prolog', 'prolog')
+    
+    # Assicurati che la directory prolog esista
+    os.makedirs(prolog_dir, exist_ok=True)
     
     file_path = os.path.join(data_dir, 'amazon_prime_titles.csv')
     
@@ -57,8 +60,8 @@ def main():
     locations_dataset = dataset[['title', 'country', 'date_added']]
     
     # Genera i file Prolog
-    generate_facts_pl(facts_dataset, os.path.join(prolog_dir, 'prolog' ,'prime_facts.pl'))
-    generate_locations_pl(locations_dataset, os.path.join(prolog_dir, 'prolog' ,'prime_locations.pl'))
+    generate_facts_pl(facts_dataset, os.path.join(prolog_dir, 'prime_facts.pl'))
+    generate_locations_pl(locations_dataset, os.path.join(prolog_dir, 'prime_locations.pl'))
     
     print("Generazione file Prolog completata.")
 
