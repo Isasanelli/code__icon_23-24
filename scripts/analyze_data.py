@@ -3,8 +3,11 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def plot_distribution(df, column, title, output_dir, top_n=None, interval=None):
+def plot_distribution(df, column, title, output_dir, top_n=None, interval=None, filter_type=None):
     plt.figure(figsize=(12, 8))
+    
+    if filter_type:
+        df = df[df['type'] == filter_type]
     
     if interval:
         # Aggrega per intervallo (ad esempio, decennio)
@@ -31,7 +34,11 @@ def plot_distribution(df, column, title, output_dir, top_n=None, interval=None):
         plt.xticks(ticks=plt.xticks()[0][::int(len(data)/20)])
     
     # Salva il grafico nella directory specificata
-    output_path = os.path.join(output_dir, f'{column}_distribution.png')
+    output_filename = f"{column}_distribution"
+    if filter_type:
+        output_filename += f"_{filter_type.lower()}"
+    output_path = os.path.join(output_dir, f'{output_filename}.png')
+    
     plt.savefig(output_path, bbox_inches='tight')
     plt.close()
 
@@ -52,8 +59,13 @@ if __name__ == "__main__":
     # Carica i dati
     df = pd.read_csv(filepath)
     
-    # Distribuzione dei titoli per decennio
-    plot_distribution(df, 'release_year', 'Distribution of Titles by Decade', output_dir, interval=10)
-
+    # Distribuzione dei titoli per decennio per film
+    plot_distribution(df, 'release_year', 'Distribution of Movies by Decade', output_dir, interval=10, filter_type='Movie')
+    
+    # Distribuzione dei titoli per decennio per serie TV
+    plot_distribution(df, 'release_year', 'Distribution of TV Shows by Decade', output_dir, interval=10, filter_type='TV Show')
+    
+    # Confronto della distribuzione dei film e delle serie TV
+    plot_distribution(df, 'type', 'Distribution of Movies vs TV Shows', output_dir)
     
     print(f"Grafici salvati nella directory {output_dir}")
