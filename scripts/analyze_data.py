@@ -11,15 +11,15 @@ def plot_distribution(df, column, title, output_dir, top_n=None, interval=None, 
     
     if interval:
         # Aggrega per intervallo (ad esempio, decennio)
-        df['grouped_year'] = (df[column] // interval) * interval
+        df.loc[:, 'grouped_year'] = (df[column] // interval) * interval
         data = df['grouped_year'].value_counts().sort_index()
-        sns.barplot(x=data.index, y=data.values, palette='viridis')
+        sns.barplot(x=data.index, y=data.values, hue=None, palette='viridis')
         plt.xlabel(f'{column.capitalize()} (Grouped by {interval} years)', fontsize=14)
     else:
         data = df[column].value_counts()
         if top_n:
             data = data.head(top_n)
-        sns.barplot(x=data.index, y=data.values, palette='viridis')
+        sns.barplot(x=data.index, y=data.values, hue=None, palette='viridis')
         plt.xlabel(column.capitalize(), fontsize=14)
     
     plt.title(title, fontsize=16)
