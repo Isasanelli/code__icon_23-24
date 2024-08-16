@@ -4,13 +4,18 @@ import numpy as np
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB
+from sklearn.preprocessing import LabelEncoder
 
 def load_processed_data(filepath):
     return pd.read_csv(filepath)
 
 def preprocess_data(df):
-    # Creazione della colonna 'most_watched' basata su un criterio
-    df['most_watched'] = df['rating'] > df['rating'].median()  # Questo è un esempio, cambia il criterio se necessario
+    # Converti 'rating' in valori numerici
+    le = LabelEncoder()
+    df['numeric_rating'] = le.fit_transform(df['rating'])
+    
+    # Creazione della colonna 'most_watched' basata sulla mediana del rating numerico
+    df['most_watched'] = df['numeric_rating'] > df['numeric_rating'].median()
     return df
 
 def load_embeddings(filepath):
@@ -51,7 +56,7 @@ if __name__ == "__main__":
         raise ValueError("Mismatch between embeddings and dataset rows.")
     
     # Unisci gli embeddings alle altre caratteristiche (rating, release_year, duration)
-    features = np.hstack([embeddings, df[['rating', 'release_year', 'duration']].values])
+    features = np.hstack([embeddings, df[['numeric_rating', 'release_year', 'duration']].values])
     y = df['most_watched']
     
     # Valutazione del modello supervisionato (Random Forest)
