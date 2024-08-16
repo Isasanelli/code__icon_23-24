@@ -2,7 +2,7 @@
 # Progetto di Analisi dei Dati Amazon Prime
 
 ## Panoramica
-Questo progetto è stato creato per analizzare un dataset di film disponibili su Amazon Prime. Il dataset include informazioni come cast, registi, valutazioni, anno di rilascio e durata. Gli obiettivi principali sono classificare i titoli più visti e ricercati, classificare gli attori più cercati e sviluppare sistemi basati sulla conoscenza utilizzando i dati.
+Questo progetto è stato creato per analizzare un dataset di film e tv show disponibili su Amazon Prime. Il dataset include informazioni come cast, registi, valutazioni, anno di rilascio e durata. Gli obiettivi principali sono classificare i titoli più visti e ricercati, classificare gli attori più cercati e sviluppare sistemi basati sulla conoscenza utilizzando i dati.
 
 ## Struttura del Progetto
 Il progetto è organizzato in diverse componenti chiave:
@@ -23,11 +23,9 @@ amazon_prime_project/
 │
 ├── data/
 │   ├── amazon_prime_titles.csv         # Dataset grezzo
-│   └── processed_data.csv              # Dataset processato
-│
-├── notebooks/
-│   ├── exploratory_analysis.ipynb      # Jupyter notebook per EDA
-│   └── model_development.ipynb         # Jupyter notebook per lo sviluppo del modello
+│   ├── processed_data.csv              # Dataset processato
+│   ├── description_embeddings.npy      # File contenente gli embeddings generati
+│   └── content_facts.pl                # Fatti Prolog generati
 │
 ├── scripts/
 │   ├── preprocess_prime_dataset.py     # Script per il preprocessing dei dati
@@ -39,11 +37,36 @@ amazon_prime_project/
 │   ├── generate_prolog_files.py        # Script per la generazione di fatti Prolog
 │   ├── knowledge_base.py               # Script per la base di conoscenza e l'ontologia
 │   ├── cross_validation.py             # Script per la cross-validation
-│   └── main_application.py             # Script principale per eseguire l'intero progetto
+│   └── utils.py                        # Script con funzioni di utilità generali
 │
-└── results/
-    ├── visualizations/                 # Directory di output per le visualizzazioni generate
-    └── models/                         # Directory di output per i modelli salvati e le metriche
+├── results/
+│   ├── visualizations/                 # Directory di output per le visualizzazioni generate
+│   │   ├── analyze_data/               # Visualizzazioni generate durante l'analisi dei dati
+│   │   │   ├── release_year_distribution_movie.png    # Distribuzione per anno dei film
+│   │   │   ├── release_year_distribution_tv_show.png  # Distribuzione per anno delle serie TV
+│   │   │   ├── type_distribution.png                  # Distribuzione per tipo di contenuto
+│   │   ├── clustering/                 # Visualizzazioni generate durante il clustering
+│   │   │   ├── clusters_visualization_pca_Movie.png   # Visualizzazione PCA dei cluster per i film
+│   │   │   ├── clusters_visualization_pca_TV Show.png # Visualizzazione PCA dei cluster per le serie TV
+│   │   ├── probabilistic_learning/     # Visualizzazioni generate durante l'apprendimento probabilistico
+│   │   │   └── roc_curve.png           # Curva ROC per il modello probabilistico
+│
+│   ├── models/                         # Directory di output per i modelli salvati e le metriche
+│   │   ├── cross_validation/           # Risultati della cross-validation
+│   │   │   ├── nb_cross_validation_metrics.csv        # Metriche del modello Naive Bayes
+│   │   │   ├── rf_cross_validation_metrics.csv        # Metriche del modello Random Forest
+│   │   ├── knowledge_base/             # Base di conoscenza e ontologia
+│   │   │   └── amazon_prime_ontology.owl              # Ontologia generata per Amazon Prime
+│   │   ├── probabilistic_learning/     # Risultati dell'apprendimento probabilistico
+│   │   │   └── classification_report.csv              # Report di classificazione del modello probabilistico
+│   │   ├── supervised/                 # Risultati dell'apprendimento supervisionato
+│   │   │   └── classification_report.csv              # Report di classificazione del modello supervisionato
+│
+├── .venv/                              # Ambiente virtuale Python (non sempre incluso)
+├── .gitignore                          # File per escludere file/directory dal version control
+├── README.md                           # Documentazione del progetto
+└── requirements.txt                    # File delle dipendenze Python del progetto
+
 ```
 
 ## Passi per Eseguire il Codice
@@ -69,15 +92,9 @@ amazon_prime_project/
      nltk.download('all')
      ```
 
-2. **Esegui lo Script Principale**
-   - Per eseguire l'intero progetto, dal preprocessing dei dati alla creazione della base di conoscenza, esegui semplicemente:
-     ```bash
-     python scripts/main_application.py
-     ```
-   - Questo script eseguirà automaticamente tutti gli altri script nell'ordine corretto.
 
-3. **Esegui i Singoli Script**
-   - Se preferisci eseguire singole componenti del progetto separatamente, puoi eseguire ogni script uno per volta:
+2. **Esegui i Singoli Script**
+   - E' preferibile eseguire singole componenti del progetto separatamente, per avere più controllo sui vari dati creati. E' importate seguire il seguente ordine:
      ```bash
      python scripts/preprocess_prime_dataset.py
      python scripts/create_embedding.py
