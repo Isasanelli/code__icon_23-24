@@ -12,47 +12,94 @@ def load_processed_data(filepath):
 def load_embeddings(filepath):
     return np.load(filepath)
 
+def clean_and_encode_data(df):
+    df['rating'] = df['rating'].replace('Unrated', np.nan)
+    df['rating'] = pd.to_numeric(df['rating'], errors='coerce')
+    
+    # Riempie i valori mancanti anziché rimuovere le righe
+    df['rating'] = df['rating'].fillna(df['rating'].mean())  # Usa la media per i valori mancanti in 'rating'
+    df['duration'] = pd.to_numeric(df['duration'], errors='coerce')
+    df['duration'] = df['duration'].fillna(df['duration'].median())  # Usa la mediana per i valori mancanti in 'duration'
+    
+    # Riempie i valori mancanti nelle colonne categoriali con 'Unknown'
+    df['director'] = df['director'].fillna('Unknown')
+    df['cast'] = df['cast'].fillna('Unknown')
+    
+    return df
+
+def verify_data_after_cleaning(df):
+    print("Numero di campioni dopo la pulizia:")
+    print(df['type'].value_counts())
+    print("\nEsempi di dati dopo la pulizia:")
+    print(df.head())
+
 def apply_clustering(X, n_clusters):
+    if len(X) < n_clusters:
+        n_clusters = len(X)
     kmeans = KMeans(n_clusters=n_clusters, random_state=42)
     clusters = kmeans.fit_predict(X)
     return clusters, kmeans
 
-def visualize_clusters(X, clusters, output_dir):
-    pca = PCA(n_components=2)
+def visualize_clusters(X, clusters, output_dir, filter_type):
+    n_samples, n_features = X.shape
+    
+    n_components = min(n_samples, n_features, 2)
+    
+    pca = PCA(n_components=n_components)
     components = pca.fit_transform(X)
     
     plt.figure(figsize=(12, 8))
     sns.scatterplot(x=components[:, 0], y=components[:, 1], hue=clusters, palette='viridis', s=100, alpha=0.7)
-    plt.title('Clusters Visualization (PCA)', fontsize=18)
+    plt.title(f'Clusters Visualization (PCA) - {filter_type}', fontsize=18)
     plt.xlabel('PCA Component 1', fontsize=14)
     plt.ylabel('PCA Component 2', fontsize=14)
     plt.legend(title='Cluster', fontsize=12, loc='upper right')
     
-    # Salva il grafico nella directory specificata
-    output_path = os.path.join(output_dir, 'clusters_visualization_pca.png')
+    output_path = os.path.join(output_dir, f'clusters_visualization_pca_{filter_type}.png')
     plt.savefig(output_path, bbox_inches='tight')
     plt.close()
 
 if __name__ == "__main__":
-    # Determina il percorso della directory corrente
     baseDir = os.path.dirname(os.path.abspath(__file__))
-
-    # Carica il dataset processato
     filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
     df = load_processed_data(filepath)
     
-    # Carica gli embeddings
+    df = clean_and_encode_data(df)
+    verify_data_after_cleaning(df)  # Verifica di nuovo i dati dopo la pulizia
+    
     embeddings_path = os.path.join(baseDir, '..', 'data', 'description_embeddings.npy')
     embeddings = load_embeddings(embeddings_path)
     
-    # Unisci gli embeddings alle altre caratteristiche
-    features = np.hstack([embeddings, df[['rating', 'release_year', 'duration']].values])
-    
-    # Applica il clustering
-    clusters, kmeans_model = apply_clustering(features, n_clusters=5)
-    
-    # Visualizza e salva i cluster
     output_dir = os.path.join(baseDir, '..', 'results', 'visualizations', 'clustering')
-    visualize_clusters(features, clusters, output_dir)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    at_least_one_clustered = False
+
+    for content_type in ['Movie', 'TV Show']:
+        print(f"Eseguendo il clustering per: {content_type}")
+        
+        df_filtered = df[df['type'] == content_type].reset_index(drop=True)
+        print(f"Numero di campioni per {content_type}: {len(df_filtered)}")
+        
+        if len(df_filtered) == 0:
+            print(f"Nessun campione trovato per {content_type}. Salto il clustering.")
+            continue
+        
+        embeddings_filtered = embeddings[df_filtered.index.values]
+        features_filtered = np.hstack([embeddings_filtered, df_filtered[['rating', 'release_year', 'duration']].values])
+        
+        print(f"Dimensione delle caratteristiche per {content_type}: {features_filtered.shape}")
+        
+        if len(features_filtered) < 2 or features_filtered.shape[1] < 2:
+            print(f"Numero insufficiente di campioni o caratteristiche per il clustering di {content_type}.")
+            continue
+        
+        clusters, kmeans_model = apply_clustering(features_filtered, n_clusters=5)
+        visualize_clusters(features_filtered, clusters, output_dir, content_type)
+        at_least_one_clustered = True
     
-    print(f"Clustering completato e grafico salvato in {output_dir}")
+    if at_least_one_clustered:
+        print(f"Clustering completato e grafici salvati in {output_dir}")
+    else:
+        print("Nessun clustering eseguito per nessuna categoria.")
