@@ -1,58 +1,61 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split, GridSearchCV
+import os
+import numpy as np
+from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, accuracy_score, roc_auc_score, confusion_matrix
-import matplotlib.pyplot as plt
-import seaborn as sns
+from sklearn.metrics import classification_report
 
-KNOWLEDGE_BASE_PATH = "../source/knowledge_base.csv"
+def load_processed_data(filepath):
+    return pd.read_csv(filepath)
 
-def load_data() -> pd.DataFrame:
-    """Carica i dati dalla Knowledge Base."""
-    return pd.read_csv(KNOWLEDGE_BASE_PATH)
+def preprocess_data(df):
+    # Creazione della colonna 'most_watched' basata su un criterio per film e serie TV
+    df['most_watched'] = df.groupby('type')['rating'].transform(lambda x: x > x.median())
+    return df
 
-def train_model(df: pd.DataFrame):
-    """Addestra il modello di classificazione."""
-    # Aggiunta di altre feature per migliorare la classificazione
-    X = df[['same_director', 'similarity_score', 'Year', 'Country', 'Date_Added']]
-    
-    # Sostituisci 'same_director' con la feature target che desideri classificare
-    y = df['same_director']  # Modifica questo per usare il target corretto
-
-    # Converti le feature categoriali in dummy variables (one-hot encoding)
-    X = pd.get_dummies(X, columns=['Country', 'Date_Added'], drop_first=True)
-
+def train_model(X, y):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    
+    model = RandomForestClassifier(random_state=42)
+    model.fit(X_train, y_train)
+    
+    y_pred = model.predict(X_test)
+    report = classification_report(y_test, y_pred, output_dict=True)
+    print(report)
+    
+    return model, report
 
-    # Modello RandomForest con tuning degli iperparametri
-    param_grid = {
-        'n_estimators': [50, 100, 200],
-        'max_depth': [None, 10, 20, 30],
-        'min_samples_split': [2, 5, 10]
-    }
-    rf = RandomForestClassifier(random_state=42)
-    grid_search = GridSearchCV(rf, param_grid, cv=5, scoring='roc_auc', n_jobs=-1)
-    grid_search.fit(X_train, y_train)
-
-    best_model = grid_search.best_estimator_
-    y_pred = best_model.predict(X_test)
-
-    print(f"Best Parameters: {grid_search.best_params_}")
-    print(f"Accuracy: {accuracy_score(y_test, y_pred)}")
-    print(f"ROC-AUC: {roc_auc_score(y_test, best_model.predict_proba(X_test)[:, 1])}")
-    print(classification_report(y_test, y_pred))
-
-    # Confusion Matrix
-    cm = confusion_matrix(y_test, y_pred)
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
-    plt.title('Confusion Matrix')
-    plt.ylabel('True Label')
-    plt.xlabel('Predicted Label')
-    plt.show()
-
-def main():
-    df = load_data()
-    train_model(df)
+def save_results(report, output_dir):
+    # Creazione della directory se non esiste
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
+    # Salvataggio del report in un file CSV
+    report_path = os.path.join(output_dir, 'classification_report.csv')
+    pd.DataFrame(report).transpose().to_csv(report_path)
+    print(f"Report salvato in {report_path}")
 
 if __name__ == "__main__":
-    main()
+    baseDir = os.path.dirname(os.path.abspath(__file__))
+
+    filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
+    df = load_processed_data(filepath)
+    
+    df = preprocess_data(df)
+    
+    if 'most_watched' not in df.columns:
+        raise ValueError("La colonna 'most_watched' non esiste nel dataframe.")
+    
+    embeddings_path = os.path.join(baseDir, '..', 'data', 'description_embeddings.npy')
+    embeddings = np.load(embeddings_path)
+    
+    features = np.hstack([embeddings, df[['rating', 'release_year', 'duration']].values])
+    y = df['most_watched']
+    
+    model, report = train_model(features, y)
+    
+    # Definisci il percorso di output per salvare i risultati
+    output_dir = os.path.join(baseDir, '..', 'results', 'models', 'supervised')
+    save_results(report, output_dir)
+    
+    print("Modello supervisionato addestrato e valutato")

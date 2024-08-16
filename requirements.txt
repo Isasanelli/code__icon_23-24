@@ -12,3 +12,4 @@ SPARQLWrapper
 openpyxl
 wordcloud
 seaborn
+imbalanced-learn

@@ -1,88 +1,59 @@
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
+import seaborn as sns
 
-def load_dataset(file_path: str) -> pd.DataFrame:
-    if not os.path.isfile(file_path):
-        raise FileNotFoundError(f"Il file {file_path} non esiste. Assicurati che il percorso sia corretto.")
-    return pd.read_csv(file_path)
-
-def convert_to_categorical(dataset: pd.DataFrame, columns: list) -> pd.DataFrame:
-    for col in columns:
-        dataset[col] = dataset[col].astype('category')
-    return dataset
-
-def generate_statistics(dataset: pd.DataFrame) -> pd.DataFrame:
-    # Escludi colonne con testo lungo per evitare distorsioni nei risultati
-    columns_to_exclude = ['description']
-    dataset = dataset.drop(columns=columns_to_exclude)
+def plot_distribution(df, column, title, output_dir, top_n=None, interval=None):
+    plt.figure(figsize=(12, 8))
     
-    # Elimina colonne con troppi valori mancanti
-    dataset = dataset.dropna(axis=1, thresh=int(0.5 * len(dataset)))
-
-    # Genera statistiche per colonne categoriche e numeriche separatamente
-    numerical_stats = dataset.describe(include=[float, int])
-    categorical_stats = dataset.describe(include=['category'])
+    if interval:
+        # Aggrega per intervallo (ad esempio, decennio)
+        df['grouped_year'] = (df[column] // interval) * interval
+        data = df['grouped_year'].value_counts().sort_index()
+        sns.barplot(x=data.index, y=data.values, palette='viridis')
+        plt.xlabel(f'{column.capitalize()} (Grouped by {interval} years)', fontsize=14)
+    else:
+        data = df[column].value_counts()
+        if top_n:
+            data = data.head(top_n)
+        sns.barplot(x=data.index, y=data.values, palette='viridis')
+        plt.xlabel(column.capitalize(), fontsize=14)
     
-    # Combina le statistiche in un unico DataFrame
-    combined_stats = pd.concat([numerical_stats, categorical_stats], axis=1)
-    return combined_stats
-
-def save_statistics_to_csv(description: pd.DataFrame, output_csv_path: str):
-    description.to_csv(output_csv_path, float_format="%.2f")
-
-def generate_charts(dataset: pd.DataFrame, output_charts_path: str):
-    os.makedirs(output_charts_path, exist_ok=True)
-
-    # Istogramma per release_year
-    plt.figure(figsize=(10, 6))
-    dataset['release_year'].dropna().astype(int).hist(bins=30, edgecolor='black', color='skyblue')
-    plt.title('Distribuzione degli Anni di Rilascio')
-    plt.xlabel('Anno di Rilascio')
-    plt.ylabel('Numero di Film/Serie')
-    plt.grid(axis='y', linestyle='--', linewidth=0.7)
-    plt.savefig(os.path.join(output_charts_path, 'release_year_distribution.png'))
+    plt.title(title, fontsize=16)
+    plt.ylabel('Count', fontsize=14)
+    
+    # Configura la rotazione delle etichette
+    plt.xticks(rotation=45, ha='right', fontsize=10)
+    plt.yticks(fontsize=12)
+    
+    # Limita il numero di etichette visualizzate
+    if interval is None and len(data) > 20:  # Limita a 20 etichette se non è impostato un intervallo
+        plt.xticks(ticks=plt.xticks()[0][::int(len(data)/20)])
+    
+    # Salva il grafico nella directory specificata
+    output_path = os.path.join(output_dir, f'{column}_distribution.png')
+    plt.savefig(output_path, bbox_inches='tight')
     plt.close()
 
-    # Grafico a barre per type
-    plt.figure(figsize=(10, 6))
-    dataset['type'].value_counts().plot(kind='bar', edgecolor='black', color='skyblue')
-    plt.title('Distribuzione per Tipo (Movie/TV Show)')
-    plt.xlabel('Tipo')
-    plt.ylabel('Conteggio')
-    plt.grid(axis='y', linestyle='--', linewidth=0.7)
-    plt.savefig(os.path.join(output_charts_path, 'type_distribution.png'))
-    plt.close()
+if __name__ == "__main__":
+    # Determina il percorso della directory corrente
+    baseDir = os.path.dirname(os.path.abspath(__file__))
 
-    # Grafico a barre per rating
-    plt.figure(figsize=(10, 6))
-    dataset['rating'].value_counts().plot(kind='bar', edgecolor='black', color='skyblue')
-    plt.title('Distribuzione dei Rating')
-    plt.xlabel('Rating')
-    plt.ylabel('Conteggio')
-    plt.grid(axis='y', linestyle='--', linewidth=0.7)
-    plt.savefig(os.path.join(output_charts_path, 'rating_distribution.png'))
-    plt.close()
+    # Definisce il percorso assoluto del file CSV di input
+    filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
 
-# Esegui l'analisi
-file_path = os.path.join(os.path.dirname(__file__), '..', 'source', 'amazon_prime_titles.csv')
-statistics_dir = os.path.join(os.path.dirname(__file__), '..', 'source', 'statistics')
-output_csv_path = os.path.join(statistics_dir, 'statistics.csv')
-output_charts_path = os.path.join(os.path.dirname(__file__), '..', 'charts', 'analyze_data')
+    # Definisce la directory per salvare i grafici
+    output_dir = os.path.join(baseDir, '..', 'results', 'visualizations', 'analyze_data')
 
-# Assicurati che la directory statistics esista
-os.makedirs(statistics_dir, exist_ok=True)
+    # Crea la directory se non esiste
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-try:
-    dataset = load_dataset(file_path)
-    dataset = convert_to_categorical(dataset, ['type', 'rating', 'listed_in'])
+    # Carica i dati
+    df = pd.read_csv(filepath)
     
-    description = generate_statistics(dataset)
-    save_statistics_to_csv(description, output_csv_path)
-    
-    generate_charts(dataset, output_charts_path)
+    # Distribuzione dei titoli per decennio
+    plot_distribution(df, 'release_year', 'Distribution of Titles by Decade', output_dir, interval=10)
 
-    print(f"Analisi completata. Le statistiche sono state salvate in '{output_csv_path}'. Le visualizzazioni grafiche sono state salvate nella cartella '{output_charts_path}'.")
     
-except Exception as e:
-    print(f"Errore durante l'analisi: {e}")
+    print(f"Grafici salvati nella directory {output_dir}")
