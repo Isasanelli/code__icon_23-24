@@ -14,12 +14,6 @@ def load_embeddings(filepath):
     return np.load(filepath)
 
 def clean_and_encode_data(df):
-    df['rating'] = df['rating'].replace('Unrated', np.nan)
-    df['rating'] = pd.to_numeric(df['rating'], errors='coerce')
-    
-    # Riempie i valori mancanti con la media per 'rating'
-    df['rating'] = df['rating'].fillna(df['rating'].mean())
-    
     # Riempie i valori mancanti nelle colonne categoriali con 'Unknown'
     df['director'] = df['director'].fillna('Unknown')
     df['cast'] = df['cast'].fillna('Unknown')
@@ -34,22 +28,16 @@ def verify_data_after_cleaning(df):
 
 def apply_clustering(X, n_clusters):
     # Imputation dei NaN nelle caratteristiche
-    if np.any(np.isnan(X)):
-        print("Riempimento dei NaN con la media delle colonne...")
-        imputer = SimpleImputer(strategy='mean')
-        X = imputer.fit_transform(X)
+    imputer = SimpleImputer(strategy='mean')
+    X = imputer.fit_transform(X)
     
-    # Rimuove eventuali colonne che non contengono valori osservati
-    non_nan_columns = ~np.isnan(X).all(axis=0)
-    X = X[:, non_nan_columns]
+    # Verifica finale che non ci siano NaN
+    if np.any(np.isnan(X)):
+        raise ValueError("I dati contengono ancora NaN dopo l'imputazione.")
 
-    # Verifica se ci sono ancora NaN residui e rimuovi le righe con NaN
-    if np.any(np.isnan(X)):
-        print("Rimozione delle righe con valori NaN residui...")
-        X = X[~np.isnan(X).any(axis=1)]
-    
     if len(X) < n_clusters:
         n_clusters = len(X)
+    
     kmeans = KMeans(n_clusters=n_clusters, random_state=42)
     clusters = kmeans.fit_predict(X)
     return clusters, kmeans
@@ -109,7 +97,7 @@ if __name__ == "__main__":
             continue
         
         embeddings_filtered = embeddings[df_filtered.index.values]
-        features_filtered = np.hstack([embeddings_filtered, df_filtered[['rating', 'release_year']].values])
+        features_filtered = embeddings_filtered
         
         print(f"Dimensione delle caratteristiche per {content_type}: {features_filtered.shape}")
         
