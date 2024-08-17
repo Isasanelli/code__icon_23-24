@@ -31,13 +31,19 @@ if __name__ == "__main__":
     # Carica i dati
     df = load_processed_data(filepath)
     
-    # Genera embeddings per la colonna 'description'
-    embeddings = generate_embeddings(df, 'description')
+    # Genera embeddings per la colonna 'content_category'
+    category_embeddings = generate_embeddings(df, 'content_category')
     
-    # Definisce il percorso per salvare gli embeddings
-    output_path = os.path.join(baseDir, '..', 'data', 'description_embeddings.npy')
+    # Genera embeddings per la colonna 'title'
+    title_embeddings = generate_embeddings(df, 'title')
     
-    # Salva gli embeddings
-    save_embeddings(embeddings, output_path)
+    # Salva gli embeddings per 'content_category'
+    category_output_path = os.path.join(baseDir, '..', 'data', 'content_category_embeddings.npy')
+    save_embeddings(category_embeddings, category_output_path)
     
-    print(f"Embeddings generati e salvati in {output_path}")
+    # Salva gli embeddings per 'title'
+    title_output_path = os.path.join(baseDir, '..', 'data', 'title_embeddings.npy')
+    save_embeddings(title_embeddings, title_output_path)
+    
+    print(f"Embeddings per 'content_category' generati e salvati in {category_output_path}")
+    print(f"Embeddings per 'title' generati e salvati in {title_output_path}")

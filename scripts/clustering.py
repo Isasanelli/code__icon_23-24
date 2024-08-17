@@ -5,6 +5,7 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.impute import SimpleImputer
 
 def load_processed_data(filepath):
     return pd.read_csv(filepath)
@@ -16,10 +17,8 @@ def clean_and_encode_data(df):
     df['rating'] = df['rating'].replace('Unrated', np.nan)
     df['rating'] = pd.to_numeric(df['rating'], errors='coerce')
     
-    # Riempie i valori mancanti anziché rimuovere le righe
-    df['rating'] = df['rating'].fillna(df['rating'].mean())  # Usa la media per i valori mancanti in 'rating'
-    df['duration'] = pd.to_numeric(df['duration'], errors='coerce')
-    df['duration'] = df['duration'].fillna(df['duration'].median())  # Usa la mediana per i valori mancanti in 'duration'
+    # Riempie i valori mancanti con la media per 'rating'
+    df['rating'] = df['rating'].fillna(df['rating'].mean())
     
     # Riempie i valori mancanti nelle colonne categoriali con 'Unknown'
     df['director'] = df['director'].fillna('Unknown')
@@ -29,11 +28,26 @@ def clean_and_encode_data(df):
 
 def verify_data_after_cleaning(df):
     print("Numero di campioni dopo la pulizia:")
-    print(df['type'].value_counts())
+    print(df['content_category'].value_counts())
     print("\nEsempi di dati dopo la pulizia:")
     print(df.head())
 
 def apply_clustering(X, n_clusters):
+    # Imputation dei NaN nelle caratteristiche
+    if np.any(np.isnan(X)):
+        print("Riempimento dei NaN con la media delle colonne...")
+        imputer = SimpleImputer(strategy='mean')
+        X = imputer.fit_transform(X)
+    
+    # Rimuove eventuali colonne che non contengono valori osservati
+    non_nan_columns = ~np.isnan(X).all(axis=0)
+    X = X[:, non_nan_columns]
+
+    # Verifica se ci sono ancora NaN residui e rimuovi le righe con NaN
+    if np.any(np.isnan(X)):
+        print("Rimozione delle righe con valori NaN residui...")
+        X = X[~np.isnan(X).any(axis=1)]
+    
     if len(X) < n_clusters:
         n_clusters = len(X)
     kmeans = KMeans(n_clusters=n_clusters, random_state=42)
@@ -64,10 +78,18 @@ if __name__ == "__main__":
     filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
     df = load_processed_data(filepath)
     
+    # Verifica le colonne presenti nel DataFrame
+    print("Colonne disponibili nel DataFrame:")
+    print(df.columns)
+    
+    # Verifica se esiste una colonna che può distinguere tra Movie e TV Show
+    if 'content_category' not in df.columns:
+        raise KeyError("La colonna 'content_category' non è presente nel DataFrame.")
+
     df = clean_and_encode_data(df)
     verify_data_after_cleaning(df)  # Verifica di nuovo i dati dopo la pulizia
     
-    embeddings_path = os.path.join(baseDir, '..', 'data', 'description_embeddings.npy')
+    embeddings_path = os.path.join(baseDir, '..', 'data', 'content_category_embeddings.npy')
     embeddings = load_embeddings(embeddings_path)
     
     output_dir = os.path.join(baseDir, '..', 'results', 'visualizations', 'clustering')
@@ -79,7 +101,7 @@ if __name__ == "__main__":
     for content_type in ['Movie', 'TV Show']:
         print(f"Eseguendo il clustering per: {content_type}")
         
-        df_filtered = df[df['type'] == content_type].reset_index(drop=True)
+        df_filtered = df[df['content_category'].str.contains(content_type, case=False)].reset_index(drop=True)
         print(f"Numero di campioni per {content_type}: {len(df_filtered)}")
         
         if len(df_filtered) == 0:
@@ -87,7 +109,7 @@ if __name__ == "__main__":
             continue
         
         embeddings_filtered = embeddings[df_filtered.index.values]
-        features_filtered = np.hstack([embeddings_filtered, df_filtered[['rating', 'release_year', 'duration']].values])
+        features_filtered = np.hstack([embeddings_filtered, df_filtered[['rating', 'release_year']].values])
         
         print(f"Dimensione delle caratteristiche per {content_type}: {features_filtered.shape}")
         
