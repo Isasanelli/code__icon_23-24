@@ -2,7 +2,7 @@
 # Progetto di Analisi dei Dati Amazon Prime
 
 ## Panoramica
-Questo progetto è stato creato per analizzare un dataset di film e tv show disponibili su Amazon Prime. Il dataset include informazioni come cast, registi, valutazioni, anno di rilascio e durata. Gli obiettivi principali sono classificare i titoli più visti e ricercati, classificare gli attori più cercati e sviluppare sistemi basati sulla conoscenza utilizzando i dati.
+Questo progetto è stato creato per analizzare un dataset di film e tv show disponibili su Amazon Prime. Il dataset include informazioni come cast, registi, valutazioni, anno di rilascio e durata. Gli obiettivi principali sono classificare i titoli più visti e ricercati e sviluppare sistemi basati sulla conoscenza utilizzando i dati.
 
 ## Struttura del Progetto
 Il progetto è organizzato in diverse componenti chiave:
@@ -13,7 +13,6 @@ Il progetto è organizzato in diverse componenti chiave:
 - **Apprendimento Probabilistico**: Implementazione di modelli probabilistici per gestire l'incertezza nelle previsioni.
 - **Prolog e Base di Conoscenza**: Generazione di fatti in formato Prolog e costruzione di un'ontologia per la rappresentazione della conoscenza.
 - **Cross-Validation**: Valutazione delle prestazioni dei modelli utilizzando la cross-validation.
-- **Applicazione Principale**: Uno script che integra tutte le componenti sopra elencate ed esegue l'intero flusso di lavoro.
 
 ## Struttura della Directory
 La struttura delle directory del progetto è la seguente:
