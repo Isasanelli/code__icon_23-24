@@ -4,63 +4,80 @@
 
 Questo progetto è stato sviluppato per analizzare un dataset di film e serie TV disponibili su Amazon Prime. Il dataset comprende informazioni come cast, registi, valutazioni, anno di rilascio e durata. Gli obiettivi principali del progetto includono:
 
-1. **Preprocessare i dati:** Pulizia e trasformazione dei dati grezzi per prepararli all'analisi.
-2. **Analizzare i dati:** Esplorazione delle distribuzioni e delle correlazioni tra variabili per ottenere insight significativi.
-3. **Clustering:** Raggruppare i titoli per caratteristiche simili, identificando pattern nei dati.
-4. **Apprendimento Supervisionato:** Creazione di modelli predittivi per classificare i titoli più visti.
-5. **Apprendimento Probabilistico:** Sviluppo di modelli probabilistici per la classificazione con focus sulla probabilità di appartenenza a determinate classi.
-6. **Cross-Validation:** Valutazione approfondita delle performance dei modelli attraverso tecniche di validazione incrociata.
-7. **Generazione di Fatti Prolog:** Creazione di rappresentazioni logiche dei dati utilizzando fatti Prolog per inferenze future.
-8. **Creazione di una Knowledge Base:** Sviluppo di un'ontologia per organizzare e gestire la conoscenza relativa ai film e alle serie TV su Amazon Prime.
+## Descrizione dei File Principali
+
+1. **analyze_data.py** :
+    Questo script analizza i dati provenienti dal dataset preprocessato. Genera visualizzazioni che mostrano la distribuzione dei film e delle serie TV per categoria, anno di rilascio, ecc.
+
+2. **clustering.py**:
+    Questo script esegue il clustering sui film e sulle serie TV basandosi sugli embeddings generati. Il clustering è utile per raggruppare contenuti simili.
+
+3. **create_embedding.py**:
+    Questo script genera gli embeddings per i titoli e le categorie di contenuto utilizzando spaCy. Gli embeddings sono poi utilizzati per il clustering e altre analisi.
+
+4. **cross_validation.py**:
+    Esegue la validazione incrociata per valutare le prestazioni dei modelli di classificazione (es. Random Forest, Naive Bayes). I risultati della cross-validation sono salvati come file CSV.
+
+5. **generate_prolog_files.py**:
+    Genera i file Prolog che contengono i fatti e le regole della base di conoscenza. Questo include sia i fatti relativi alla classificazione sia quelli per le raccomandazioni.
+
+6. **kb.pl**:
+    Questo file rappresenta la base di conoscenza principale in Prolog. Contiene tutte le regole e i fatti necessari per effettuare ragionamenti logici, sia per la classificazione che per le raccomandazioni.
+
+7. **preprocess_data_dataset.py**:
+    Questo script esegue il preprocessing del dataset originale di Netflix. Pulisce i dati, gestisce i valori mancanti e crea nuove feature (es. lunghezza del titolo, mese e stagione di rilascio).
+
+8. **probabilistic_learning.py**:
+    Implementa un modello probabilistico utilizzando Random Forest. Il modello viene valutato e genera una curva ROC per visualizzare le performance.
+
+9. **supervised.py**:
+    Contiene l'implementazione di diversi modelli di classificazione supervisionata (es. Decision Tree, Random Forest, AdaBoost, Naive Bayes, K-NN). Genera report di classificazione e curve di apprendimento.
 
 ## Struttura del Progetto
 
 Il progetto è organizzato nelle seguenti directory:
 
 ```
-amazon_prime_project/
+CODE_ICON_23-24/
+│
+├── .venv/
 │
 ├── data/
-│   ├── amazon_prime_titles.csv            # Dataset grezzo
-│   ├── processed_data.csv                 # Dataset processato
-│   ├── description_embeddings.npy         # Embedding delle descrizioni dei titoli
-│   └── content_facts.pl                   # Fatti Prolog generati
-│
-├── scripts/
-│   ├── preprocess_prime_dataset.py        # Script per il preprocessing dei dati
-│   ├── analyze_data.py                    # Script per l'analisi dei dati
-│   ├── clustering.py                      # Script per il clustering
-│   ├── supervised.py                      # Script per l'apprendimento supervisionato
-│   ├── probabilistic_learning.py          # Script per l'apprendimento probabilistico
-│   ├── create_embedding.py                # Script per la generazione di embeddings
-│   ├── generate_prolog_files.py           # Script per la generazione di fatti Prolog
-│   ├── knowledge_base.py                  # Script per la base di conoscenza e l'ontologia
-│   ├── cross_validation.py                # Script per la cross-validation
-│   
+│   ├── content_category_embeddings.npy
+│   ├── netflix_titles.csv
+│   ├── processed_data.csv
+│   ├── title_embeddings.npy
 │
 ├── results/
-│   ├── visualizations/                    # Directory di output per le visualizzazioni generate
-│   │   ├── analyze_data/                  # Visualizzazioni relative all'analisi dei dati
-│   │   │   ├── release_year_distribution_movie.png
-│   │   │   ├── release_year_distribution_tv_show.png
-│   │   │   ├── type_distribution.png
-│   │   ├── clustering/                    # Visualizzazioni relative al clustering
-│   │   │   ├── clusters_visualization_pca_Movie.png
-│   │   │   ├── clusters_visualization_pca_TV_Show.png
-│   │   └── probabilistic_learning/        # Visualizzazioni relative all'apprendimento probabilistico
-│   │       └── roc_curve.png
-│   ├── models/                            # Directory di output per i modelli salvati e le metriche
-│       ├── cross_validation/              # Metriche di cross-validation
-│       │   ├── rf_cross_validation_metrics.csv
-│       │   ├── nb_cross_validation_metrics.csv
-│       ├── knowledge_base/                # Ontologia e Knowledge Base
-│       │   └── amazon_prime_ontology.owl
-│       ├── probabilistic_learning/        # Metriche di apprendimento probabilistico
-│       │   └── classification_report.csv
-│       ├── supervised/                    # Metriche di apprendimento supervisionato
-│           └── classification_report.csv
+│   ├── knowledge_base/
+│   │   ├── classification.pl
+│   │   ├── recommendation.pl
+│   ├── models/
+│   │   ├── clustering/
+│   │   ├── cross_validation/
+│   │   ├── probabilistic_learning/
+│   │   ├── supervised/
+│   ├── visualizations/
+│   │   ├── analyze_data/
+│   │   ├── clustering/
+│   │   ├── probabilistic_learning/
+│   │   ├── supervised/
 │
-└── README.md
+├── scripts/
+│   ├── analyze_data.py
+│   ├── clustering.py
+│   ├── create_embedding.py
+│   ├── cross_validation.py
+│   ├── generate_prolog_files.py
+│   ├── kb.pl
+│   ├── preprocess_data_dataset.py
+│   ├── probabilistic_learning.py
+│   ├── supervised.py
+│
+├── .gitignore
+├── README.md
+├── requirements.txt
+
 
 ```
 
