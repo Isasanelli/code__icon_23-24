@@ -2,12 +2,14 @@ import pandas as pd
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split, learning_curve, RepeatedKFold, cross_val_score, GridSearchCV
+import seaborn as sns
+from sklearn.model_selection import train_test_split, learning_curve, KFold, cross_val_score, cross_val_predict
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from imblearn.over_sampling import SMOTE
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, f1_score
 from collections import Counter
 
 def load_processed_data(filepath):
@@ -21,6 +23,13 @@ def preprocess_data(df):
     
     df['numeric_rating'] = df['rating'].map(rating_mapping)
     df = df.dropna(subset=['numeric_rating'])
+    
+    # Usa .loc per evitare SettingWithCopyWarning
+    df = df.copy()
+    df['title_length'] = df['title'].apply(len)
+    df['release_month'] = pd.to_datetime(df['date_added']).dt.month
+    df['release_season'] = pd.to_datetime(df['date_added']).dt.month % 12 // 3 + 1
+    
     df['most_watched'] = df.groupby('content_category')['numeric_rating'].transform(lambda x: x > x.median())
     
     return df
@@ -55,7 +64,8 @@ def train_model(model, X, y, model_name, model_output_base_dir, plot_output_base
     os.makedirs(model_output_dir, exist_ok=True)
     os.makedirs(plot_output_dir, exist_ok=True)
 
-    cv = RepeatedKFold(n_splits=5, n_repeats=2)
+    # Utilizza KFold invece di RepeatedKFold
+    cv = KFold(n_splits=5)
     scores = cross_val_score(model, X, y, scoring='accuracy', cv=cv)
     print(f'{model_name} Accuracy: {scores.mean():.4f} (+/- {scores.std() * 2:.4f})')
 
@@ -63,9 +73,28 @@ def train_model(model, X, y, model_name, model_output_base_dir, plot_output_base
     plot_learning_curves(model, X, y, model_name, plot_output_dir)
     
     # Salva il report di classificazione
-    report_df = pd.DataFrame({'Model': [model_name], 'Accuracy': [scores.mean()], 'Std Dev': [scores.std()]})
+    y_pred = cross_val_predict(model, X, y, cv=cv)
+    report = classification_report(y, y_pred, output_dict=True)
+    report_df = pd.DataFrame(report).transpose()
     report_path = os.path.join(model_output_dir, f'{model_name}_classification_report.csv')
-    report_df.to_csv(report_path, index=False)
+    report_df.to_csv(report_path, index=True)
+
+    # Genera e salva la matrice di confusione
+    cm = confusion_matrix(y, y_pred)
+    cm_path = os.path.join(plot_output_dir, f'{model_name}_confusion_matrix.png')
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False)
+    plt.title(f'Confusion Matrix for {model_name}')
+    plt.ylabel('True Label')
+    plt.xlabel('Predicted Label')
+    plt.savefig(cm_path)
+    plt.close()
+
+    # Aggiunge altre metriche (es. ROC-AUC, F1-Score)
+    roc_auc = roc_auc_score(y, y_pred)
+    f1 = f1_score(y, y_pred)
+    print(f'{model_name} ROC-AUC: {roc_auc:.4f}')
+    print(f'{model_name} F1-Score: {f1:.4f}')
 
 if __name__ == "__main__":
     baseDir = os.path.dirname(os.path.abspath(__file__))
@@ -85,7 +114,7 @@ if __name__ == "__main__":
     embeddings = np.load(embeddings_path)
     embeddings = filter_embeddings(df, embeddings)
     
-    features = np.hstack([embeddings, df[['numeric_rating', 'release_year']].values])
+    features = np.hstack([embeddings, df[['numeric_rating', 'release_year', 'title_length', 'release_month', 'release_season']].values])
     y = df['most_watched']
     
     # Distribuzione delle classi prima di SMOTE
