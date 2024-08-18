@@ -61,6 +61,12 @@ def visualize_clusters(X, clusters, output_dir, filter_type):
     plt.savefig(output_path, bbox_inches='tight')
     plt.close()
 
+def save_clustering_results(df, clusters, content_type, output_dir):
+    df['Cluster'] = clusters
+    output_path = os.path.join(output_dir, f'clustering_results_{content_type}.csv')
+    df.to_csv(output_path, index=False)
+    print(f"Risultati del clustering salvati in {output_path}")
+
 if __name__ == "__main__":
     baseDir = os.path.dirname(os.path.abspath(__file__))
     filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
@@ -80,9 +86,14 @@ if __name__ == "__main__":
     embeddings_path = os.path.join(baseDir, '..', 'data', 'content_category_embeddings.npy')
     embeddings = load_embeddings(embeddings_path)
     
-    output_dir = os.path.join(baseDir, '..', 'results', 'visualizations', 'clustering')
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    output_dir_visualizations = os.path.join(baseDir, '..', 'results', 'visualizations', 'clustering')
+    output_dir_models = os.path.join(baseDir, '..', 'results', 'models', 'clustering')
+    
+    if not os.path.exists(output_dir_visualizations):
+        os.makedirs(output_dir_visualizations)
+    
+    if not os.path.exists(output_dir_models):
+        os.makedirs(output_dir_models)
 
     at_least_one_clustered = False
 
@@ -106,10 +117,11 @@ if __name__ == "__main__":
             continue
         
         clusters, kmeans_model = apply_clustering(features_filtered, n_clusters=5)
-        visualize_clusters(features_filtered, clusters, output_dir, content_type)
+        visualize_clusters(features_filtered, clusters, output_dir_visualizations, content_type)
+        save_clustering_results(df_filtered, clusters, content_type, output_dir_models)
         at_least_one_clustered = True
     
     if at_least_one_clustered:
-        print(f"Clustering completato e grafici salvati in {output_dir}")
+        print(f"Clustering completato e risultati salvati in {output_dir_models}")
     else:
         print("Nessun clustering eseguito per nessuna categoria.")
