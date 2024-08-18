@@ -2,11 +2,6 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
-import warnings
-
-# Soppressione dei warning
-warnings.filterwarnings("ignore", category=FutureWarning)
-warnings.filterwarnings("ignore", category=pd.errors.SettingWithCopyWarning)
 
 def plot_distribution(df, column, title, output_dir, top_n=None, interval=None, filter_type=None):
     plt.figure(figsize=(12, 8))
@@ -15,8 +10,8 @@ def plot_distribution(df, column, title, output_dir, top_n=None, interval=None, 
         df = df[df['content_category'].str.contains(filter_type)]
     
     if interval:
-        df = df.copy()  # Evita SettingWithCopyWarning creando una copia
-        df.loc[:, 'grouped_year'] = (df[column] // interval) * interval
+        df = df.copy()  # Avoid SettingWithCopyWarning
+        df['grouped_year'] = (df[column] // interval) * interval
         data = df['grouped_year'].value_counts().sort_index()
         sns.barplot(x=data.index, y=data.values, palette='viridis', hue=data.index, legend=False)
         plt.xlabel(f'{column.capitalize()} (Grouped by {interval} years)', fontsize=14)

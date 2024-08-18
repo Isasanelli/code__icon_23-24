@@ -19,23 +19,21 @@ def clean_data(df):
     df['director'] = df['director'].fillna('Unknown Director')
     df['rating'] = df['rating'].fillna('Unrated')
     df['release_year'] = df['release_year'].fillna(0)
+    
     df['type'] = df['type'].fillna('Unknown Type')
     df['listed_in'] = df['listed_in'].fillna('Unknown Category')
-
-    # Conversione della colonna 'date_added' in formato datetime, gestendo gli errori
-    df['date_added'] = pd.to_datetime(df['date_added'], format='%B %d, %Y', errors='coerce')
     
-    # Creazione di nuove feature
-    df['title_length'] = df['title'].apply(len)
-    df['release_month'] = df['date_added'].dt.month.fillna(0).astype(int)
-    df['release_season'] = ((df['release_month'] % 12) // 3 + 1).astype(int)  # Stagioni: 1=Inverno, 2=Primavera, 3=Estate, 4=Autunno
-
     # Unione delle colonne 'type' e 'listed_in' in una nuova colonna 'content_category'
     df['content_category'] = df['type'] + ' - ' + df['listed_in']
 
     # Rimozione delle colonne originali 'type' e 'listed_in'
     df = df.drop(columns=['type', 'listed_in'], errors='ignore')
 
+    # Creazione di nuove feature
+    df['title_length'] = df['title'].apply(len)
+    df['release_month'] = pd.to_datetime(df['date_added'], errors='coerce').dt.month.fillna(0).astype(int)
+    df['release_season'] = pd.to_datetime(df['date_added'], errors='coerce').dt.month % 12 // 3 + 1
+    
     return df
 
 if __name__ == "__main__":
