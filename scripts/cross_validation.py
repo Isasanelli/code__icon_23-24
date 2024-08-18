@@ -44,11 +44,15 @@ if __name__ == "__main__":
     # Preprocessa i dati per creare la colonna 'most_watched'
     df = preprocess_data(df)
     
-    # Gestisci i dati mancanti
-    df = df.dropna(subset=['rating', 'release_year', 'duration'])
+    # Verifica se le colonne esistono prima di rimuovere le righe con valori mancanti
+    columns_to_check = ['rating', 'release_year', 'duration']
+    columns_to_dropna = [col for col in columns_to_check if col in df.columns]
+    
+    if columns_to_dropna:
+        df = df.dropna(subset=columns_to_dropna)
     
     # Carica gli embeddings
-    embeddings_path = os.path.join(baseDir, '..', 'data', 'description_embeddings.npy')
+    embeddings_path = os.path.join(baseDir, '..', 'data', 'content_category_embeddings.npy')
     embeddings = load_embeddings(embeddings_path)
     
     # Verifica che le dimensioni coincidano
@@ -56,7 +60,9 @@ if __name__ == "__main__":
         raise ValueError("Mismatch between embeddings and dataset rows.")
     
     # Unisci gli embeddings alle altre caratteristiche (rating, release_year, duration)
-    features = np.hstack([embeddings, df[['numeric_rating', 'release_year', 'duration']].values])
+    features = np.hstack([embeddings, df[['numeric_rating', 'release_year']].values])
+    if 'duration' in df.columns:
+        features = np.hstack([features, df[['duration']].values])
     y = df['most_watched']
     
     # Valutazione del modello supervisionato (Random Forest)
