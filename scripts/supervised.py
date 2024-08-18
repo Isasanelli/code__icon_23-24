@@ -125,7 +125,7 @@ if __name__ == "__main__":
     
     # Distribuzione delle classi dopo SMOTE
     print("Distribuzione delle classi dopo SMOTE:", Counter(y_resampled))
-    
+
     # Divide i dati per il test
     X_train, X_test, y_train, y_test = train_test_split(features_resampled, y_resampled, test_size=0.3, random_state=42)
     

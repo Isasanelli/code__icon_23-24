@@ -2,15 +2,18 @@ import pandas as pd
 import spacy
 import numpy as np
 import os
+from tqdm import tqdm
 
 def load_processed_data(filepath):
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"File not found: {filepath}")
     return pd.read_csv(filepath)
 
 def generate_embeddings(df, column):
-    nlp = spacy.load('en_core_web_sm')
+    nlp = spacy.load('en_core_web_sm', disable=['ner', 'parser', 'tagger'])
     embeddings = []
     
-    for doc in nlp.pipe(df[column].astype('unicode').values, batch_size=50):
+    for doc in tqdm(nlp.pipe(df[column].astype('unicode').values, batch_size=50), total=len(df), desc=f'Processing {column}'):
         if doc.has_vector:
             embeddings.append(doc.vector)
         else:
@@ -19,7 +22,11 @@ def generate_embeddings(df, column):
     return np.array(embeddings)
 
 def save_embeddings(embeddings, output_path):
-    np.save(output_path, embeddings)
+    try:
+        np.save(output_path, embeddings)
+        print(f"Embeddings saved successfully to {output_path}")
+    except Exception as e:
+        print(f"Error saving embeddings: {e}")
 
 if __name__ == "__main__":
     # Determina il percorso della directory corrente
@@ -29,7 +36,11 @@ if __name__ == "__main__":
     filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
     
     # Carica i dati
-    df = load_processed_data(filepath)
+    try:
+        df = load_processed_data(filepath)
+    except FileNotFoundError as e:
+        print(e)
+        exit(1)
     
     # Genera embeddings per la colonna 'content_category'
     category_embeddings = generate_embeddings(df, 'content_category')
