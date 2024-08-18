@@ -13,10 +13,10 @@ def load_processed_data(filepath):
 def preprocess_data(df):
     # Convertire 'rating' in valori numerici
     le = LabelEncoder()
-    df['numeric_rating'] = le.fit_transform(df['rating'])
+    df['numeric_rating'] = le.fit_transform(df['rating'].fillna('Unrated'))
     
     # Creazione della colonna 'most_watched' basata su un criterio per film e serie TV
-    df['most_watched'] = df.groupby('type')['numeric_rating'].transform(lambda x: x > x.median())
+    df['most_watched'] = df.groupby('content_category')['numeric_rating'].transform(lambda x: x > x.median())
     
     return df
 
@@ -55,9 +55,22 @@ def train_model(X, y):
     
     print(f"ROC curve salvata in {roc_curve_path}")
     
-    print(report)
+    print("\nClassification Report:")
+    print("="*50)
+    for label, metrics in report.items():
+        if isinstance(metrics, dict):  # Exclude accuracy and other summary metrics
+            print(f"Class '{label}':")
+            print(f"    Precision: {metrics['precision']:.4f}")
+            print(f"    Recall: {metrics['recall']:.4f}")
+            print(f"    F1-Score: {metrics['f1-score']:.4f}")
+            print(f"    Support: {metrics['support']:.0f}")
+            print("-"*50)
+        else:
+            print(f"{label.capitalize()}: {metrics:.4f}")
+    print("="*50)
     
     return model, report
+
 
 def save_results(report, output_dir):
     # Creazione della directory se non esiste
@@ -68,6 +81,7 @@ def save_results(report, output_dir):
     report_path = os.path.join(output_dir, 'classification_report.csv')
     pd.DataFrame(report).transpose().to_csv(report_path)
     print(f"Report salvato in {report_path}")
+
 
 if __name__ == "__main__":
     baseDir = os.path.dirname(os.path.abspath(__file__))
@@ -80,12 +94,12 @@ if __name__ == "__main__":
     if 'most_watched' not in df.columns:
         raise ValueError("La colonna 'most_watched' non esiste nel dataframe.")
     
-    embeddings_path = os.path.join(baseDir, '..', 'data', 'description_embeddings.npy')
+    embeddings_path = os.path.join(baseDir, '..', 'data', 'content_category_embeddings.npy')
     embeddings = np.load(embeddings_path)
     
     # Includere il tipo di contenuto come feature
-    type_encoded = pd.get_dummies(df['type'], drop_first=True)
-    features = np.hstack([embeddings, df[['numeric_rating', 'release_year', 'duration']].values, type_encoded.values])
+    type_encoded = pd.get_dummies(df['content_category'], drop_first=True)
+    features = np.hstack([embeddings, df[['numeric_rating', 'release_year', 'title_length', 'release_month', 'release_season']].values, type_encoded.values])
     y = df['most_watched']
     
     model, report = train_model(features, y)
