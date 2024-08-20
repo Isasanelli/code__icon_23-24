@@ -30,8 +30,7 @@ def clean_data(df):
     # Rimozione delle colonne originali 'type' e 'listed_in'
     df = df.drop(columns=['type', 'listed_in'], errors='ignore')
     
-   
-     # Aggiunta della colonna 'preferences' con valori casuali tra 40 e 100%
+    # Aggiunta della colonna 'preferences' con valori casuali tra 40 e 100%
     df['preferences'] = np.random.randint(40, 101, size=len(df))
     
     return df

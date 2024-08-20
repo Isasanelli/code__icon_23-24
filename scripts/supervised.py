@@ -26,7 +26,7 @@ def preprocess_data(df):
     df['numeric_rating'] = df['rating'].map(rating_mapping)
     df = df.dropna(subset=['numeric_rating'])
     
-    df = df.copy()  # Usa .copy() per evitare il SettingWithCopyWarning
+    df = df.copy()  
     df['title_length'] = df['title'].apply(len)
     df['release_month'] = pd.to_datetime(df['date_added']).dt.month
     df['release_season'] = pd.to_datetime(df['date_added']).dt.month % 12 // 3 + 1
@@ -42,23 +42,43 @@ def filter_embeddings(df, embeddings):
         embeddings = embeddings[df.index]
     return embeddings
 
-def plot_learning_curves(model, X, y, model_name, plot_output_dir):
-    """Genera e salva le curve di apprendimento per un modello."""
+def plot_learning_curves_with_table(model, X, y, model_name, plot_output_dir, report_df):
+    """Genera e salva le curve di apprendimento per un modello, includendo una tabella con i risultati."""
     train_sizes, train_scores, test_scores = learning_curve(model, X, y, cv=5, scoring='accuracy')
     mean_train_errors = 1 - np.mean(train_scores, axis=1)
     mean_test_errors = 1 - np.mean(test_scores, axis=1)
 
-    plt.figure(figsize=(10, 6))
-    plt.plot(train_sizes, mean_train_errors, label='Training Error', color='green')
-    plt.plot(train_sizes, mean_test_errors, label='Testing Error', color='red')
-    plt.title(f'Learning Curve for {model_name}')
-    plt.xlabel('Training Set Size')
-    plt.ylabel('Error')
-    plt.legend()
+    # Rimuovi la colonna 'support' dal report_df
+    report_df = report_df.drop(columns=['support'], errors='ignore')
 
-    output_path = os.path.join(plot_output_dir, f'{model_name}_learning_curve.png')
+    # Creare la figura e gli assi per il grafico e la tabella
+    fig, ax = plt.subplots(1, 2, figsize=(18, 6))
+
+    # Curva di apprendimento
+    ax[0].plot(train_sizes, mean_train_errors, label='Training Error', color='green')
+    ax[0].plot(train_sizes, mean_test_errors, label='Testing Error', color='red')
+    ax[0].set_title(f'Learning Curve for {model_name}')
+    ax[0].set_xlabel('Training Set Size')
+    ax[0].set_ylabel('Error')
+    ax[0].legend()
+
+    # Tabella con le metriche
+    ax[1].axis('off')
+    table = ax[1].table(cellText=report_df.values,
+                        colLabels=report_df.columns,
+                        rowLabels=report_df.index,
+                        cellLoc='center',
+                        loc='center')
+    table.scale(1, 1.5)
+
+    # Modifica i margini per creare spazio tra il grafico e la tabella
+    plt.subplots_adjust(wspace=0.5)  
+
+    output_path = os.path.join(plot_output_dir, f'{model_name}_learning_curve_with_table.png')
     plt.savefig(output_path, bbox_inches='tight')
+    plt.show()
     plt.close()
+
 
 def train_model(model, X, y, model_name, model_output_base_dir, plot_output_base_dir):
     """Addestra un modello e salva i risultati."""
@@ -74,15 +94,16 @@ def train_model(model, X, y, model_name, model_output_base_dir, plot_output_base
     scores = cross_val_score(model, X, y, scoring='accuracy', cv=cv)
     print(f'{model_name} Accuracy: {scores.mean():.4f} (+/- {scores.std() * 2:.4f})')
 
-    # Salva le curve di apprendimento
-    plot_learning_curves(model, X, y, model_name, plot_output_dir)
-    
     # Predizione dei valori e calcolo delle metriche
     y_pred = cross_val_predict(model, X, y, cv=cv)
     report = classification_report(y, y_pred, output_dict=True)
     report_df = pd.DataFrame(report).transpose()
+    report_df = report_df.drop(columns=['support'], errors='ignore')  # Rimuovi 'support'
     report_path = os.path.join(model_output_dir, f'{model_name}_classification_report.csv')
     report_df.to_csv(report_path, index=True)
+
+    # Genera e salva la curva di apprendimento con la tabella
+    plot_learning_curves_with_table(model, X, y, model_name, plot_output_dir, report_df)
 
     # Genera e salva la matrice di confusione
     cm = confusion_matrix(y, y_pred)
@@ -93,6 +114,7 @@ def train_model(model, X, y, model_name, model_output_base_dir, plot_output_base
     plt.ylabel('True Label')
     plt.xlabel('Predicted Label')
     plt.savefig(cm_path)
+    plt.show()
     plt.close()
 
     # Aggiunge altre metriche
@@ -108,8 +130,16 @@ def train_model(model, X, y, model_name, model_output_base_dir, plot_output_base
 def supervised_learning(baseDir):
     """Gestisce l'intero processo di apprendimento supervisionato."""
     filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
-    embeddings_path = os.path.join(baseDir, '..', 'data', 'content_category_embeddings.npy')  # Percorso corretto
+    embeddings_path = os.path.join(baseDir, '..', 'data', 'content_category_embeddings.npy')
+    title_embeddings_path = os.path.join(baseDir, '..', 'data', 'title_embeddings.npy')
 
+    # Controlla se i file degli embeddings esistono nel percorso corretto
+    if not os.path.exists(embeddings_path):
+        raise FileNotFoundError(f"Il file {embeddings_path} non esiste. Verifica il percorso.")
+    if not os.path.exists(title_embeddings_path):
+        raise FileNotFoundError(f"Il file {title_embeddings_path} non esiste. Verifica il percorso.")
+    
+    
     # Definisce le directory di output
     model_output_base_dir = os.path.join(baseDir, '..', 'results', 'models', 'supervised')
     plot_output_base_dir = os.path.join(baseDir, '..', 'results', 'visualizations', 'supervised')
@@ -155,4 +185,3 @@ def supervised_learning(baseDir):
         train_model(model, X_train, y_train, model_name, model_output_base_dir, plot_output_base_dir)
 
     print("Apprendimento supervisionato completato e risultati salvati.")
-

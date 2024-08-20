@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 from preprocess_data_dataset import preprocess_data
 from create_embedding import create_embeddings_pipeline
 from analyze_data import analyze_data
@@ -8,7 +9,11 @@ from generate_prolog_files import generate_prolog_files
 from probabilistic_learning import probabilistic_learning
 from raccomandazione import raccomandazione  # Importiamo la nuova funzione raccomandazione
 
+# Variabile di stato per controllare se la classificazione è stata eseguita
+is_classification_done = False
+
 def classificazione(baseDir):
+    global is_classification_done
     try:
         print("Inizio della pipeline per la classificazione...")
         preprocess_data(baseDir)
@@ -25,31 +30,56 @@ def classificazione(baseDir):
         supervised_learning(baseDir)
         cross_validate_models(baseDir)
         print("Classificazione completata.")
+        is_classification_done = True  # Imposta la variabile a True dopo il completamento
     except Exception as e:
         print(f"Errore durante la classificazione: {e}")
-
+        is_classification_done = False  # Assicurarsi che sia False se si verifica un errore
 
 def kb(baseDir):
+    if not is_classification_done:
+        print("Errore: Esegui prima la classificazione.")
+        return
     try:
         print("Inizio della pipeline per la generazione della KB...")
-        preprocess_data(baseDir)
-        create_embeddings_pipeline(baseDir)
-        analyze_data(baseDir)
         generate_prolog_files(baseDir)
         print("KB generata con successo.")
     except Exception as e:
         print(f"Errore durante la generazione della KB: {e}")
 
 def apprendimento_probabilistico(baseDir):
+    if not is_classification_done:
+        print("Errore: Esegui prima la classificazione.")
+        return
     try:
         print("Inizio della pipeline per l'apprendimento probabilistico...")
-        preprocess_data(baseDir)
-        create_embeddings_pipeline(baseDir)
-        analyze_data(baseDir)
         probabilistic_learning(baseDir)
         print("Apprendimento probabilistico completato.")
     except Exception as e:
         print(f"Errore durante l'apprendimento probabilistico: {e}")
+
+def raccomandazione(baseDir):
+    if not is_classification_done:
+        print("Errore: Esegui prima la classificazione.")
+        return
+    try:
+        print("Inizio del sistema di raccomandazione...")
+        filepath = os.path.join(baseDir, 'data', 'processed_data.csv')
+        df = pd.read_csv(filepath)
+
+        user_liked_category = 'Action - International Movies'  # Questo potrebbe essere dinamico
+
+        recommendations = df[df['content_category'].str.contains(user_liked_category, na=False)]
+        
+        if recommendations.empty:
+            print("Nessuna raccomandazione disponibile per la categoria selezionata.")
+        else:
+            print(f"Raccomandazioni per la categoria '{user_liked_category}':")
+            for title in recommendations['title'].head(10):
+                print(f"- {title}")
+
+        print("Sistema di raccomandazione completato.")
+    except Exception as e:
+        print(f"Errore durante il processo di raccomandazione: {e}")
 
 def display_menu():
     print("\nMenu di Selezione:")
@@ -68,7 +98,7 @@ if __name__ == "__main__":
         if choice == '1':
             classificazione(baseDir)
         elif choice == '2':
-            raccomandazione(baseDir)  # Richiama la raccomandazione dal nuovo file
+            raccomandazione(baseDir)
         elif choice == '3':
             kb(baseDir)
         elif choice == '4':

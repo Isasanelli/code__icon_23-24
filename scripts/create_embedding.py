@@ -49,11 +49,10 @@ def generate_and_save_embeddings(df, column, output_dir, nlp):
         print(f"Errore durante la generazione o il salvataggio degli embeddings per '{column}': {e}")
 
 def create_embeddings_pipeline(baseDir):
-    """Gestisce l'intero processo di generazione degli embeddings."""
     try:
         # Carica il modello SpaCy
         print("Caricamento del modello SpaCy...")
-        nlp = spacy.load('en_core_web_sm')  # Usa un modello piccolo per efficienza, ma puoi sostituirlo con un modello più grande
+        nlp = spacy.load('en_core_web_sm')
         
         # Percorso dei dati e della directory di output
         filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
