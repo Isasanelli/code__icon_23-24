@@ -59,6 +59,11 @@ def visualize_clusters(X, clusters, output_dir, filter_type):
     
     output_path = os.path.join(output_dir, f'clusters_visualization_pca_{filter_type}.png')
     plt.savefig(output_path, bbox_inches='tight')
+    
+    # Show the plot in real-time
+    plt.show()
+    
+    # Close the plot to free up memory
     plt.close()
 
 def save_clustering_results(df, clusters, content_type, output_dir):
@@ -69,7 +74,7 @@ def save_clustering_results(df, clusters, content_type, output_dir):
 
 def perform_clustering(baseDir):
     """Funzione principale per eseguire il clustering."""
-    filepath = os.path.join(baseDir, 'data', 'processed_data.csv')
+    filepath = os.path.join(baseDir, '..','data', 'processed_data.csv')
     df = load_processed_data(filepath)
     
     # Verifica le colonne presenti nel DataFrame
@@ -82,11 +87,11 @@ def perform_clustering(baseDir):
     df = clean_and_encode_data(df)
     verify_data_after_cleaning(df)  # Verifica di nuovo i dati dopo la pulizia
     
-    embeddings_path = os.path.join(baseDir, 'data', 'content_category_embeddings.npy')
+    embeddings_path = os.path.join(baseDir, '..','data', 'content_category_embeddings.npy')
     embeddings = load_embeddings(embeddings_path)
     
-    output_dir_visualizations = os.path.join(baseDir, 'results', 'visualizations', 'clustering')
-    output_dir_models = os.path.join(baseDir, 'results', 'models', 'clustering')
+    output_dir_visualizations = os.path.join(baseDir, '..','results', 'visualizations', 'clustering')
+    output_dir_models = os.path.join(baseDir, '..','results', 'models', 'clustering')
     
     os.makedirs(output_dir_visualizations, exist_ok=True)
     os.makedirs(output_dir_models, exist_ok=True)

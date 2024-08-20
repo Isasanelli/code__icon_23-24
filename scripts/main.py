@@ -3,6 +3,7 @@ import pandas as pd
 from preprocess_data_dataset import preprocess_data
 from create_embedding import create_embeddings_pipeline
 from analyze_data import analyze_data
+from clustering import perform_clustering
 from cross_validation import cross_validate_models
 from supervised import supervised_learning
 from generate_prolog_files import generate_prolog_files
@@ -10,7 +11,7 @@ from probabilistic_learning import probabilistic_learning
 from raccomandazione import raccomandazione  # Importiamo la nuova funzione raccomandazione
 
 # Variabile di stato per controllare se la classificazione è stata eseguita
-is_classification_done = False
+is_classification_done = False 
 
 def classificazione(baseDir):
     global is_classification_done
@@ -27,6 +28,7 @@ def classificazione(baseDir):
             raise FileNotFoundError(f"Uno o più file di embedding non sono stati trovati: {content_embeddings_path}, {title_embeddings_path}")
         
         analyze_data(baseDir)
+        perform_clustering(baseDir)
         supervised_learning(baseDir)
         cross_validate_models(baseDir)
         print("Classificazione completata.")
