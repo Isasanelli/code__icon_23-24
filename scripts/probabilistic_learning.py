@@ -20,7 +20,7 @@ def preprocess_data(df):
     
     return df
 
-def train_model(X, y):
+def train_model(X, y, baseDir):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
     model = RandomForestClassifier(random_state=42)
@@ -45,9 +45,8 @@ def train_model(X, y):
     plt.legend(loc="lower right")
     
     # Salva la curva ROC
-    output_dir_visualization = os.path.join(baseDir, '..', 'results', 'visualizations', 'probabilistic_learning')
-    if not os.path.exists(output_dir_visualization):
-        os.makedirs(output_dir_visualization)
+    output_dir_visualization = os.path.join(baseDir, 'results', 'visualizations', 'probabilistic_learning')
+    os.makedirs(output_dir_visualization, exist_ok=True)
     
     roc_curve_path = os.path.join(output_dir_visualization, 'roc_curve.png')
     plt.savefig(roc_curve_path)
@@ -71,22 +70,19 @@ def train_model(X, y):
     
     return model, report
 
-
-def save_results(report, output_dir):
+def save_results(report, baseDir):
     # Creazione della directory se non esiste
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    output_dir_model = os.path.join(baseDir, 'results', 'models', 'probabilistic_learning')
+    os.makedirs(output_dir_model, exist_ok=True)
     
     # Salvataggio del report in un file CSV
-    report_path = os.path.join(output_dir, 'classification_report.csv')
+    report_path = os.path.join(output_dir_model, 'classification_report.csv')
     pd.DataFrame(report).transpose().to_csv(report_path)
     print(f"Report salvato in {report_path}")
 
-
-if __name__ == "__main__":
-    baseDir = os.path.dirname(os.path.abspath(__file__))
-
-    filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
+def probabilistic_learning(baseDir):
+    """Funzione principale per eseguire l'apprendimento probabilistico."""
+    filepath = os.path.join(baseDir, 'data', 'processed_data.csv')
     df = load_processed_data(filepath)
     
     df = preprocess_data(df)
@@ -94,18 +90,19 @@ if __name__ == "__main__":
     if 'most_watched' not in df.columns:
         raise ValueError("La colonna 'most_watched' non esiste nel dataframe.")
     
-    embeddings_path = os.path.join(baseDir, '..', 'data', 'content_category_embeddings.npy')
+    embeddings_path = os.path.join(baseDir, 'data', 'content_category_embeddings.npy')
     embeddings = np.load(embeddings_path)
     
     # Includere il tipo di contenuto come feature
     type_encoded = pd.get_dummies(df['content_category'], drop_first=True)
     features = np.hstack([embeddings, df[['numeric_rating', 'release_year', 'title_length', 'release_month', 'release_season']].values, type_encoded.values])
     y = df['most_watched']
-    
-    model, report = train_model(features, y)
+    # Addestra il modello e genera il report
+    model, report = train_model(features, y, baseDir)
     
     # Salva i risultati
-    output_dir_model = os.path.join(baseDir, '..', 'results', 'models', 'probabilistic_learning')
-    save_results(report, output_dir_model)
+    save_results(report, baseDir)
     
-    print("Modello probabilistico migliorato addestrato e valutato")
+    print("Modello probabilistico addestrato e valutato con successo.")
+
+   

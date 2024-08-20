@@ -67,33 +67,29 @@ def save_clustering_results(df, clusters, content_type, output_dir):
     df.to_csv(output_path, index=False)
     print(f"Risultati del clustering salvati in {output_path}")
 
-if __name__ == "__main__":
-    baseDir = os.path.dirname(os.path.abspath(__file__))
-    filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
+def perform_clustering(baseDir):
+    """Funzione principale per eseguire il clustering."""
+    filepath = os.path.join(baseDir, 'data', 'processed_data.csv')
     df = load_processed_data(filepath)
     
     # Verifica le colonne presenti nel DataFrame
     print("Colonne disponibili nel DataFrame:")
     print(df.columns)
     
-    # Verifica se esiste una colonna che può distinguere tra Movie e TV Show
     if 'content_category' not in df.columns:
         raise KeyError("La colonna 'content_category' non è presente nel DataFrame.")
 
     df = clean_and_encode_data(df)
     verify_data_after_cleaning(df)  # Verifica di nuovo i dati dopo la pulizia
     
-    embeddings_path = os.path.join(baseDir, '..', 'data', 'content_category_embeddings.npy')
+    embeddings_path = os.path.join(baseDir, 'data', 'content_category_embeddings.npy')
     embeddings = load_embeddings(embeddings_path)
     
-    output_dir_visualizations = os.path.join(baseDir, '..', 'results', 'visualizations', 'clustering')
-    output_dir_models = os.path.join(baseDir, '..', 'results', 'models', 'clustering')
+    output_dir_visualizations = os.path.join(baseDir, 'results', 'visualizations', 'clustering')
+    output_dir_models = os.path.join(baseDir, 'results', 'models', 'clustering')
     
-    if not os.path.exists(output_dir_visualizations):
-        os.makedirs(output_dir_visualizations)
-    
-    if not os.path.exists(output_dir_models):
-        os.makedirs(output_dir_models)
+    os.makedirs(output_dir_visualizations, exist_ok=True)
+    os.makedirs(output_dir_models, exist_ok=True)
 
     at_least_one_clustered = False
 
@@ -106,7 +102,6 @@ if __name__ == "__main__":
         if len(df_filtered) == 0:
             print(f"Nessun campione trovato per {content_type}. Salto il clustering.")
             continue
-        
         embeddings_filtered = embeddings[df_filtered.index.values]
         features_filtered = embeddings_filtered
         

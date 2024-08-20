@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import numpy as np
 
 def load_dataset(filepath):
     df = pd.read_csv(filepath)
@@ -28,24 +29,23 @@ def clean_data(df):
 
     # Rimozione delle colonne originali 'type' e 'listed_in'
     df = df.drop(columns=['type', 'listed_in'], errors='ignore')
-
-    # Creazione di nuove feature
-    df['title_length'] = df['title'].apply(len)
-    df['release_month'] = pd.to_datetime(df['date_added'], errors='coerce').dt.month.fillna(0).astype(int)
-    df['release_season'] = pd.to_datetime(df['date_added'], errors='coerce').dt.month % 12 // 3 + 1
+    
+   
+     # Aggiunta della colonna 'preferences' con valori casuali tra 40 e 100%
+    df['preferences'] = np.random.randint(40, 101, size=len(df))
     
     return df
 
-if __name__ == "__main__":
-    baseDir = os.path.dirname(os.path.abspath(__file__))
-
+def preprocess_data(baseDir):
+    """Gestisce il preprocessing completo."""
     # Percorso corretto per il file di input di Netflix
     filepath = os.path.join(baseDir, '..', 'data', 'netflix_titles.csv')
-
     output_path = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
     
+    # Caricamento e pulizia del dataset
     df = load_dataset(filepath)
     df = clean_data(df)
     
+    # Salvataggio del dataset preprocessato
     df.to_csv(output_path, index=False)
     print(f"Dataset preprocessato e salvato in {output_path}")

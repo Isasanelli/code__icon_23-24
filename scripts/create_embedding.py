@@ -4,12 +4,22 @@ import numpy as np
 import os
 
 def load_processed_data(filepath):
+    """Carica i dati preprocessati dal file CSV."""
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"Il file '{filepath}' non esiste.")
     return pd.read_csv(filepath)
 
-def generate_embeddings(df, column):
-    nlp = spacy.load('en_core_web_sm')  # Carica il modello SpaCy
+def generate_embeddings(df, column, nlp):
+    """Genera gli embeddings per una colonna specificata del DataFrame utilizzando SpaCy."""
     embeddings = []
     
+    # Verifica se la colonna esiste
+    if column not in df.columns:
+        raise ValueError(f"La colonna '{column}' non esiste nel DataFrame.")
+    
+    # Verifica la presenza di valori mancanti nella colonna
+    df[column] = df[column].fillna('')  # Sostituisce eventuali valori mancanti con stringhe vuote
+
     # Genera gli embeddings per ogni voce nella colonna specificata
     for doc in nlp.pipe(df[column].astype('unicode').values, batch_size=50):
         if doc.has_vector:
@@ -20,31 +30,45 @@ def generate_embeddings(df, column):
     return np.array(embeddings)
 
 def save_embeddings(embeddings, output_path):
-    np.save(output_path, embeddings)
+    """Salva gli embeddings in formato NumPy."""
+    try:
+        np.save(output_path, embeddings)
+        print(f"Embeddings salvati in {output_path}")
+    except Exception as e:
+        print(f"Errore durante il salvataggio degli embeddings: {e}")
 
-if __name__ == "__main__":
-    # Determina il percorso della directory corrente
-    baseDir = os.path.dirname(os.path.abspath(__file__))
+def generate_and_save_embeddings(df, column, output_dir, nlp):
+    """Genera e salva gli embeddings per una specifica colonna."""
+    try:
+        print(f"Generazione degli embeddings per la colonna '{column}'...")
+        embeddings = generate_embeddings(df, column, nlp)
+        
+        output_path = os.path.join(output_dir, f'{column}_embeddings.npy')
+        save_embeddings(embeddings, output_path)
+    except Exception as e:
+        print(f"Errore durante la generazione o il salvataggio degli embeddings per '{column}': {e}")
 
-    # Definisce il percorso assoluto del file CSV di input
-    filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
-    
-    # Carica i dati
-    df = load_processed_data(filepath)
-    
-    # Genera embeddings per la colonna 'content_category'
-    category_embeddings = generate_embeddings(df, 'content_category')
-    
-    # Genera embeddings per la colonna 'title'
-    title_embeddings = generate_embeddings(df, 'title')
-    
-    # Salva gli embeddings per 'content_category'
-    category_output_path = os.path.join(baseDir, '..', 'data', 'content_category_embeddings.npy')
-    save_embeddings(category_embeddings, category_output_path)
-    
-    # Salva gli embeddings per 'title'
-    title_output_path = os.path.join(baseDir, '..', 'data', 'title_embeddings.npy')
-    save_embeddings(title_embeddings, title_output_path)
-    
-    print(f"Embeddings per 'content_category' generati e salvati in {category_output_path}")
-    print(f"Embeddings per 'title' generati e salvati in {title_output_path}")
+def create_embeddings_pipeline(baseDir):
+    """Gestisce l'intero processo di generazione degli embeddings."""
+    try:
+        # Carica il modello SpaCy
+        print("Caricamento del modello SpaCy...")
+        nlp = spacy.load('en_core_web_sm')  # Usa un modello piccolo per efficienza, ma puoi sostituirlo con un modello più grande
+        
+        # Percorso dei dati e della directory di output
+        filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
+        output_dir = os.path.join(baseDir, '..', 'data')
+
+        # Creazione della directory di output se non esiste
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Caricamento dei dati
+        df = load_processed_data(filepath)
+
+        # Genera e salva gli embeddings per 'content_category'
+        generate_and_save_embeddings(df, 'content_category', output_dir, nlp)
+        
+        # Genera e salva gli embeddings per 'title'
+        generate_and_save_embeddings(df, 'title', output_dir, nlp)
+    except Exception as e:
+        print(f"Errore durante la pipeline di creazione degli embeddings: {e}")

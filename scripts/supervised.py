@@ -7,15 +7,17 @@ from sklearn.model_selection import train_test_split, learning_curve, KFold, cro
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.naive_bayes import GaussianNB
 from imblearn.over_sampling import SMOTE
-from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, f1_score
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, f1_score, precision_score, recall_score
 from collections import Counter
 
 def load_processed_data(filepath):
+    """Carica i dati preprocessati dal file CSV."""
     return pd.read_csv(filepath)
 
 def preprocess_data(df):
+    """Preprocessa il DataFrame per l'apprendimento supervisionato."""
+    # Mapping dei rating in valori numerici
     rating_mapping = {
         'G': 1, 'PG': 2, 'PG-13': 3, 'R': 4, 'NC-17': 5,
         'Unrated': np.nan, '13+': 3, '16+': 4, '18+': 5, '7+': 2, 'ALL': 1
@@ -24,22 +26,24 @@ def preprocess_data(df):
     df['numeric_rating'] = df['rating'].map(rating_mapping)
     df = df.dropna(subset=['numeric_rating'])
     
-    # Usa .loc per evitare SettingWithCopyWarning
-    df = df.copy()
+    df = df.copy()  # Usa .copy() per evitare il SettingWithCopyWarning
     df['title_length'] = df['title'].apply(len)
     df['release_month'] = pd.to_datetime(df['date_added']).dt.month
     df['release_season'] = pd.to_datetime(df['date_added']).dt.month % 12 // 3 + 1
     
+    # Creazione del target 'most_watched' in base alla mediana del rating
     df['most_watched'] = df.groupby('content_category')['numeric_rating'].transform(lambda x: x > x.median())
     
     return df
 
 def filter_embeddings(df, embeddings):
+    """Filtra gli embedding in base all'indice del DataFrame."""
     if len(embeddings) > len(df):
         embeddings = embeddings[df.index]
     return embeddings
 
 def plot_learning_curves(model, X, y, model_name, plot_output_dir):
+    """Genera e salva le curve di apprendimento per un modello."""
     train_sizes, train_scores, test_scores = learning_curve(model, X, y, cv=5, scoring='accuracy')
     mean_train_errors = 1 - np.mean(train_scores, axis=1)
     mean_test_errors = 1 - np.mean(test_scores, axis=1)
@@ -57,6 +61,7 @@ def plot_learning_curves(model, X, y, model_name, plot_output_dir):
     plt.close()
 
 def train_model(model, X, y, model_name, model_output_base_dir, plot_output_base_dir):
+    """Addestra un modello e salva i risultati."""
     # Creazione delle directory specifiche per ciascun modello
     model_output_dir = os.path.join(model_output_base_dir, model_name)
     plot_output_dir = os.path.join(plot_output_base_dir, model_name)
@@ -64,7 +69,7 @@ def train_model(model, X, y, model_name, model_output_base_dir, plot_output_base
     os.makedirs(model_output_dir, exist_ok=True)
     os.makedirs(plot_output_dir, exist_ok=True)
 
-    # Utilizza KFold invece di RepeatedKFold
+    # Utilizza KFold per la validazione incrociata
     cv = KFold(n_splits=5)
     scores = cross_val_score(model, X, y, scoring='accuracy', cv=cv)
     print(f'{model_name} Accuracy: {scores.mean():.4f} (+/- {scores.std() * 2:.4f})')
@@ -72,7 +77,7 @@ def train_model(model, X, y, model_name, model_output_base_dir, plot_output_base
     # Salva le curve di apprendimento
     plot_learning_curves(model, X, y, model_name, plot_output_dir)
     
-    # Salva il report di classificazione
+    # Predizione dei valori e calcolo delle metriche
     y_pred = cross_val_predict(model, X, y, cv=cv)
     report = classification_report(y, y_pred, output_dict=True)
     report_df = pd.DataFrame(report).transpose()
@@ -90,16 +95,20 @@ def train_model(model, X, y, model_name, model_output_base_dir, plot_output_base
     plt.savefig(cm_path)
     plt.close()
 
-    # Aggiunge altre metriche (es. ROC-AUC, F1-Score)
+    # Aggiunge altre metriche
     roc_auc = roc_auc_score(y, y_pred)
     f1 = f1_score(y, y_pred)
+    precision = precision_score(y, y_pred)
+    recall = recall_score(y, y_pred)
     print(f'{model_name} ROC-AUC: {roc_auc:.4f}')
     print(f'{model_name} F1-Score: {f1:.4f}')
+    print(f'{model_name} Precision: {precision:.4f}')
+    print(f'{model_name} Recall: {recall:.4f}')
 
-if __name__ == "__main__":
-    baseDir = os.path.dirname(os.path.abspath(__file__))
+def supervised_learning(baseDir):
+    """Gestisce l'intero processo di apprendimento supervisionato."""
     filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
-    embeddings_path = os.path.join(baseDir, '..', 'data', 'content_category_embeddings.npy')
+    embeddings_path = os.path.join(baseDir, '..', 'data', 'content_category_embeddings.npy')  # Percorso corretto
 
     # Definisce le directory di output
     model_output_base_dir = os.path.join(baseDir, '..', 'results', 'models', 'supervised')
@@ -108,12 +117,15 @@ if __name__ == "__main__":
     os.makedirs(model_output_base_dir, exist_ok=True)
     os.makedirs(plot_output_base_dir, exist_ok=True)
     
+    # Caricamento e preprocessing dei dati
     df = load_processed_data(filepath)
     df = preprocess_data(df)
     
+    # Caricamento e filtraggio degli embedding
     embeddings = np.load(embeddings_path)
     embeddings = filter_embeddings(df, embeddings)
     
+    # Creazione delle feature e del target
     features = np.hstack([embeddings, df[['numeric_rating', 'release_year', 'title_length', 'release_month', 'release_season']].values])
     y = df['most_watched']
     
@@ -134,10 +146,13 @@ if __name__ == "__main__":
         'DecisionTree': DecisionTreeClassifier(max_depth=10, min_samples_split=10, min_samples_leaf=5),
         'RandomForest': RandomForestClassifier(n_estimators=20, max_depth=10, min_samples_split=10, min_samples_leaf=5),
         'AdaBoost': AdaBoostClassifier(algorithm='SAMME', n_estimators=50, learning_rate=1),
-        'KNN': KNeighborsClassifier(n_neighbors=5, weights='distance'),
-        'NaiveBayes': GaussianNB()
+        'KNN': KNeighborsClassifier(n_neighbors=5, weights='distance')
     }
 
+    # Addestra e valuta ciascun modello
     for model_name, model in models.items():
         print(f"Training {model_name}...")
         train_model(model, X_train, y_train, model_name, model_output_base_dir, plot_output_base_dir)
+
+    print("Apprendimento supervisionato completato e risultati salvati.")
+

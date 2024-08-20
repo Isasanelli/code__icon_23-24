@@ -3,7 +3,6 @@ import os
 import numpy as np
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.naive_bayes import GaussianNB
 from sklearn.preprocessing import LabelEncoder
 
 def load_processed_data(filepath):
@@ -33,36 +32,32 @@ def evaluate_model(model, X, y, cv_folds=5):
     
     return metrics
 
-if __name__ == "__main__":
-    # Determina il percorso della directory corrente
-    baseDir = os.path.dirname(os.path.abspath(__file__))
-
-    # Carica il dataset processato
+def cross_validate_models(baseDir):
+    """Funzione principale per eseguire la validazione incrociata dei modelli."""
     filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
+
     df = load_processed_data(filepath)
     
     # Preprocessa i dati per creare la colonna 'most_watched'
     df = preprocess_data(df)
     
     # Verifica se le colonne esistono prima di rimuovere le righe con valori mancanti
-    columns_to_check = ['rating', 'release_year', 'duration']
+    columns_to_check = ['rating', 'release_year']
     columns_to_dropna = [col for col in columns_to_check if col in df.columns]
     
     if columns_to_dropna:
         df = df.dropna(subset=columns_to_dropna)
     
     # Carica gli embeddings
-    embeddings_path = os.path.join(baseDir, '..', 'data', 'content_category_embeddings.npy')
+    embeddings_path = os.path.join(baseDir, 'data', 'content_category_embeddings.npy')
     embeddings = load_embeddings(embeddings_path)
     
     # Verifica che le dimensioni coincidano
     if len(embeddings) != len(df):
         raise ValueError("Mismatch between embeddings and dataset rows.")
     
-    # Unisci gli embeddings alle altre caratteristiche (rating, release_year, duration)
+    # Unisci gli embeddings alle altre caratteristiche (rating, release_year)
     features = np.hstack([embeddings, df[['numeric_rating', 'release_year']].values])
-    if 'duration' in df.columns:
-        features = np.hstack([features, df[['duration']].values])
     y = df['most_watched']
     
     # Valutazione del modello supervisionato (Random Forest)
@@ -75,27 +70,12 @@ if __name__ == "__main__":
     print(f"Recall: {rf_metrics['recall']:.4f}")
     print(f"F1 Score: {rf_metrics['f1_score']:.4f}")
     
-    # Valutazione del modello probabilistico (Naive Bayes)
-    nb_model = GaussianNB()
-    nb_metrics = evaluate_model(nb_model, features, y)
-    
-    print("\nNaive Bayes Metrics:")
-    print(f"Accuracy: {nb_metrics['accuracy']:.4f}")
-    print(f"Precision: {nb_metrics['precision']:.4f}")
-    print(f"Recall: {nb_metrics['recall']:.4f}")
-    print(f"F1 Score: {nb_metrics['f1_score']:.4f}")
-    
     # Assicurati che le directory esistano
-    output_dir = os.path.join(baseDir, '..', 'results', 'models', 'cross_validation')
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    output_dir = os.path.join(baseDir, 'results', 'models', 'cross_validation')
+    os.makedirs(output_dir, exist_ok=True)
     
     # Salvataggio dei risultati
     rf_output_path = os.path.join(output_dir, 'rf_cross_validation_metrics.csv')
-    nb_output_path = os.path.join(output_dir, 'nb_cross_validation_metrics.csv')
-    
     pd.DataFrame([rf_metrics]).to_csv(rf_output_path, index=False)
-    pd.DataFrame([nb_metrics]).to_csv(nb_output_path, index=False)
     
     print(f"Metriche della Random Forest salvate in {rf_output_path}")
-    print(f"Metriche del Naive Bayes salvate in {nb_output_path}")
