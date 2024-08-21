@@ -1,5 +1,4 @@
 import os
-import pandas as pd
 from preprocess_data_dataset import preprocess_data
 from create_embedding import create_embeddings_pipeline
 from analyze_data import analyze_data
@@ -8,7 +7,7 @@ from cross_validation import cross_validate_models
 from supervised import supervised_learning
 from generate_prolog_files import generate_prolog_files
 from probabilistic_learning import probabilistic_learning
-from search_and_recommendation import search_and_recommend
+from search_and_recommendation import search_and_recommend_titoli
 
 # Variabile di stato per controllare se la classificazione è stata eseguita
 is_classification_done = False 
@@ -44,17 +43,13 @@ def classificazione(baseDir):
         print(f"Errore durante la classificazione: {e}")
         is_classification_done = False  # Assicurarsi che sia False se si verifica un errore
 
-def search_and_recommend_titoli(baseDir):
+def search_and_recommend_titoli_wrapper(baseDir):
     if not is_classification_done:
         print("Errore: Esegui prima la classificazione.")
         return
     try:
-        # Unifica l'input per titolo e categoria
-        user_input = input("Inserisci un titolo o una categoria (es. 'Breaking Bad' o 'Comedy'): ")
-        if user_input:
-            search_and_recommend(baseDir, user_input=user_input)
-        else:
-            print("Nessun input fornito. Inserisci un titolo o una categoria per effettuare la ricerca.")
+        # Richiama la funzione di raccomandazione che gestisce anche il sottomenu
+        search_and_recommend_titoli(baseDir)
     except Exception as e:
         print(f"Errore durante la ricerca e raccomandazione: {e}")
 
@@ -101,7 +96,7 @@ if __name__ == "__main__":
             if choice == '1':
                 classificazione(baseDir)
             elif choice == '2':
-                search_and_recommend_titoli(baseDir)
+                search_and_recommend_titoli_wrapper(baseDir)
             elif choice == '3':
                 kb(baseDir)
             elif choice == '4':
