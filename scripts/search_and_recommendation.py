@@ -27,18 +27,16 @@ def map_user_input_to_category(user_input):
         'reality show': 'Reality TV',
         'reality tv': 'Reality TV',
         'horror': 'Horror Movies',
+        'romantico': 'Romantic Movies'
         
     }
 
-    # Converti l'input dell'utente a minuscolo e rimuovi spazi
     user_input = user_input.lower().strip()
     
-    # Cerca la mappatura
     for key in category_mapping:
         if key in user_input:
             return category_mapping[key]
     
-    # Se nessuna mappatura è trovata, ritorna l'input originale
     return user_input
 
 def search_and_recommend(baseDir, user_input=None, top_n=5):
@@ -54,10 +52,8 @@ def search_and_recommend(baseDir, user_input=None, top_n=5):
         df = load_processed_data(filepath)
 
         if user_input:
-            # Mappa l'input dell'utente alla categoria corrispondente
             mapped_category = map_user_input_to_category(user_input)
             
-            # Cerca titoli nella categoria mappata
             category_recommendations = recommend_top_titles(df, content_category=mapped_category)
             
             if isinstance(category_recommendations, pd.DataFrame) and not category_recommendations.empty:
@@ -65,7 +61,6 @@ def search_and_recommend(baseDir, user_input=None, top_n=5):
                 for idx, row in category_recommendations.iterrows():
                     print(f"- {row['title']}")
                 
-                # Chiedi all'utente di scegliere un titolo dalla lista
                 selected_title = input("\nSeleziona un titolo dalla lista per ricevere una raccomandazione o inserisci un altro titolo: ")
                 selected_title_info = search_title_with_suggestions(df, selected_title)
                 
@@ -78,11 +73,35 @@ def search_and_recommend(baseDir, user_input=None, top_n=5):
                     print(f"Categoria: {title_info['content_category']}")
                     print(f"Preferenze: {title_info['preferences']}")
 
-                    rating = input(f"Come valuti il titolo '{title_info['title']}' su una scala da 1 a 5? ")
+                    rating = int(input(f"Come valuti il titolo '{title_info['title']}' su una scala da 1 a 5? "))
 
-                    print(f"Grazie! Hai valutato '{title_info['title']}' con un {rating}/5.")
-                    print(f"\nPerché ti è piaciuto '{title_info['title']}', ti raccomandiamo i titoli simili a '{title_info['title']}':")
-                    recommend_popular(df, title_info['content_category'])
+                    if rating <= 2:
+                        print(f"Sembra che questo titolo non sia di tuo gradimento. Che genere ti piace?")
+                        preferred_genre = input("Inserisci un genere (es. 'Commedia', 'Drammatico'): ")
+                        mapped_genre = map_user_input_to_category(preferred_genre)
+                        genre_recommendations = recommend_top_titles(df, content_category=mapped_genre)
+                        if isinstance(genre_recommendations, pd.DataFrame) and not genre_recommendations.empty:
+                            print(f"\nTitoli raccomandati nella categoria '{mapped_genre}':")
+                            for idx, row in genre_recommendations.iterrows():
+                                print(f"- {row['title']}")
+                            # Richiedi una nuova valutazione
+                            selected_title = input("\nSeleziona un titolo dalla lista per valutare: ")
+                            selected_title_info = search_title_with_suggestions(df, selected_title)
+                            
+                            if 'exact_match' in selected_title_info:
+                                title_info = selected_title_info['exact_match'].iloc[0]
+                                rating = int(input(f"Come valuti il titolo '{title_info['title']}' su una scala da 1 a 5? "))
+                                print(f"Grazie! Hai valutato '{title_info['title']}' con un {rating}/5.")
+                                # Mostra le raccomandazioni se la valutazione è positiva
+                                if rating >= 3:
+                                    print(f"\nPerché ti è piaciuto '{title_info['title']}', ti raccomandiamo i titoli simili a '{title_info['title']}':")
+                                    recommend_popular(df, title_info['content_category'])
+                        else:
+                            print(f"Nessun risultato trovato per il genere: {mapped_genre}.")
+                    else:
+                        print(f"Grazie! Hai valutato '{title_info['title']}' con un {rating}/5.")
+                        print(f"\nPerché ti è piaciuto '{title_info['title']}', ti raccomandiamo i titoli simili a '{title_info['title']}':")
+                        recommend_popular(df, title_info['content_category'])
                     return selected_title_info['exact_match']
                 else:
                     print("Il titolo scelto non è stato trovato.")
