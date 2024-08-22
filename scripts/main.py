@@ -26,7 +26,7 @@ def check_classification_status(baseDir):
 def classificazione(baseDir):
     global is_classification_done
     try:
-        print("Inizio della pipeline per la classificazione...")
+        print("\nInizio della pipeline per la classificazione...")
         preprocess_data(baseDir)
         create_embeddings_pipeline(baseDir)
 
@@ -36,10 +36,10 @@ def classificazione(baseDir):
             perform_clustering(baseDir)
             supervised_learning(baseDir)
             cross_validate_models(baseDir)
-            print("Classificazione completata.")
+            print("\nClassificazione completata.")
             is_classification_done = True  # Imposta la variabile a True dopo il completamento
         else:
-            raise FileNotFoundError("Uno o più file essenziali per la classificazione non sono stati trovati.")
+            raise FileNotFoundError("\nUno o più file essenziali per la classificazione non sono stati trovati.")
     except Exception as e:
         print(f"Errore durante la classificazione: {e}")
         is_classification_done = False  # Assicurarsi che sia False se si verifica un errore
@@ -56,7 +56,7 @@ def search_and_recommend_titoli_wrapper(baseDir, df):
             elif user_input == "categoria":
                 search_by_category(df)
             else:
-                print("Opzione non valida. Per favore scegli 'titolo' o 'categoria'.")
+                print("\nOpzione non valida. Per favore scegli 'titolo' o 'categoria'.")
         except Exception as e:
             print(f"Errore durante la ricerca e raccomandazione: {e}")
 
@@ -78,39 +78,46 @@ def search_by_title(df):
         elif 'suggestions' in title_info:
             print("\nTitolo non trovato, ma abbiamo trovato questi suggerimenti:")
             for idx, row in title_info['suggestions'].iterrows():
-                print(f"- {row['title']}")
+                print(f"- {row['title']} ({row['content_category']}, Preferenze: {row['preferences']})")
         else:
             print(f"Nessun risultato trovato per: {user_input}.")
             continue
+
+        
+        
 def search_by_category(df, category=None):
     if category is None:
         user_input = input("\nInserisci una categoria (es. 'Comedy', 'Drama', 'Horror'): ").strip().lower()
         category = map_user_input_to_category(user_input)
     
+    # Ottieni le raccomandazioni per la categoria, senza stampare
     category_recommendations = recommend_top_titles(df, content_category=category)
+    
+    # Stampa la lista dei titoli una sola volta
     if not category_recommendations.empty:
         print(f"\nTitoli nella categoria '{category}':")
         for idx, row in category_recommendations.iterrows():
-            print(f"- {row['title']}")  # Rimosso 'content_type'
-        
-        while True:
-            print("\nMenu di Selezione:")
-            print("1) Inserire un titolo della lista")
-            print("2) Fare una nuova ricerca")
-            print("3) Tornare al menu principale")
-            title_choice = input("Seleziona un'opzione (1-3): ").strip()
-
-            if title_choice == '1':
-                search_by_title(df)
-                break
-            elif title_choice == '2':
-                return
-            elif title_choice == '3':
-                return  # Questo potrebbe interrompere il ciclo e tornare al menu principale
-            else:
-                print("Opzione non valida. Riprova.")
+            print(f"- {row['title']} ({row['content_category']}, Preferenze: {row['preferences']})")
     else:
         print(f"Nessun risultato trovato per la categoria: {category}.")
+    
+    # Mostra il menu di selezione solo una volta, senza ristampare i titoli
+    while True:
+        print("\nMenu di Selezione:")
+        print("1) Inserire un titolo della lista")
+        print("2) Fare una nuova ricerca")
+        print("3) Tornare al menu principale")
+        title_choice = input("Seleziona un'opzione (1-3): ").strip()
+
+        if title_choice == '1':
+            search_by_title(df)
+            break
+        elif title_choice == '2':
+            return
+        elif title_choice == '3':
+            return  # Questo interrompe il ciclo e torna al menu principale
+        else:
+            print("Opzione non valida. Riprova.")
 
 
 

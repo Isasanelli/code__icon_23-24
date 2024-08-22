@@ -65,7 +65,7 @@ def search_and_recommend(baseDir, df):
                 if not recommended_titles.empty:
                     print(f"\nEcco i titoli consigliati nella categoria '{preferred_genre}':")
                     for idx, row in recommended_titles.iterrows():
-                        print(f"- {row['title']}")
+                        print(f"- {row['title']} ({row['content_category']}, Preferenze: {row['preferences']})")
                 else:
                     print("Nessun titolo trovato per la categoria specificata.")
             else:
@@ -75,7 +75,7 @@ def search_and_recommend(baseDir, df):
         elif 'suggestions' in title_info:
             print("\nTitolo non trovato, ma abbiamo trovato questi suggerimenti:")
             for idx, row in title_info['suggestions'].iterrows():
-                print(f"- {row['title']}")
+                print(f"- {row['title']} ({row['content_category']}, Preferenze: {row['preferences']})")
             continue
         else:
             # Se non è un titolo, cerca per categoria
@@ -83,10 +83,11 @@ def search_and_recommend(baseDir, df):
             if not category_recommendations.empty:
                 print(f"\nTitoli nella categoria '{mapped_category}':")
                 for idx, row in category_recommendations.iterrows():
-                    print(f"- {row['title']} (tipo: {row['content_type']})")
+                    print(f"- {row['title']} ({row['content_category']}, Preferenze: {row['preferences']})")
                 continue
             else:
                 print(f"Nessun risultato trovato per la categoria o titolo: {mapped_category}.")
+
 
 def show_title_info(title_info):
     """Mostra le informazioni di un titolo."""
@@ -105,15 +106,20 @@ def get_user_rating(title):
             if 1 <= rating <= 5:
                 return rating
             else:
-                print("Per favore, inserisci un numero da 1 a 5.")
+                print("\nPer favore, inserisci un numero da 1 a 5.")
         except ValueError:
-            print("Input non valido. Inserisci un numero da 1 a 5.")
+            print("\nInput non valido. Inserisci un numero da 1 a 5.")
 
 def recommend_popular(df, category):
     """Raccomanda titoli popolari basati sulla categoria."""
-    popular_titles = df[df['content_category'] == category].nlargest(5, 'preferences')
+    print(f"\nAltri utenti hanno votato titoli simili al titolo selezionato. Ecco i titoli più raccomandati nella categoria '{category}':")
+    
+    popular_titles = df[df['content_category'].str.contains(category, na=False)].nlargest(5, 'preferences')
     for idx, row in popular_titles.iterrows():
-        print(f"- {row['title']} (Preferenze: {row['preferences']})")
+        print(f"- {row['title']} ({row['content_category']}, Preferenze: {row['preferences']})")
+
+
+
 
 def show_statistics_menu(df, baseDir):
     """Mostra il menu delle statistiche."""
@@ -138,26 +144,27 @@ def show_statistics_menu(df, baseDir):
         elif choice == '5':
             break  # Esce dal menu delle statistiche e torna al menu principale
         else:
-            print("Selezione non valida. Riprova.")
+            print("\nSelezione non valida. Riprova.")
+
 
 
 def show_top_movies(dataframe):
     """Mostra i 5 titoli di film più popolari."""
-    top_movies = dataframe[dataframe['content_category'] == 'Movie'].nlargest(5, 'preferences')
+    top_movies = dataframe[dataframe['content_category'].str.contains('Movie', na=False)].nlargest(5, 'preferences')
     if not top_movies.empty:
         print("\nTop 5 Film più popolari:")
         for idx, row in top_movies.iterrows():
-            print(f"{idx + 1}. {row['title']} (Preferenze: {row['preferences']})")
+            print(f"{idx + 1}. {row['title']} ({row['content_category']}, Preferenze: {row['preferences']})")
     else:
         print("Nessun film trovato.")
 
 def show_top_tv_shows(dataframe):
     """Mostra i 5 titoli di serie TV più popolari."""
-    top_tv_shows = dataframe[dataframe['content_category'] == 'TV Show'].nlargest(5, 'preferences')
+    top_tv_shows = dataframe[dataframe['content_category'].str.contains('TV Show', na=False)].nlargest(5, 'preferences')
     if not top_tv_shows.empty:
         print("\nTop 5 Serie TV più popolari:")
         for idx, row in top_tv_shows.iterrows():
-            print(f"{idx + 1}. {row['title']} (Preferenze: {row['preferences']})")
+            print(f"{idx + 1}. {row['title']} ({row['content_category']}, Preferenze: {row['preferences']})")
     else:
         print("Nessuna serie TV trovata.")
 
@@ -204,6 +211,7 @@ def search_title_with_suggestions(dataframe, search_query, top_n=5):
     
     return {"message": "No matching titles found."}
 
+
 def recommend_top_titles(dataframe, content_category=None, top_n=10):
     """Raccomanda i titoli più popolari in base al campo 'preferences'."""
     if content_category:
@@ -213,6 +221,9 @@ def recommend_top_titles(dataframe, content_category=None, top_n=10):
 
     if recommendations.empty:
         return pd.DataFrame()
-    
+
+    # Restituisce solo i dati senza stampare
     top_recommendations = recommendations.sort_values(by='preferences', ascending=False).head(top_n)
     return top_recommendations
+
+
