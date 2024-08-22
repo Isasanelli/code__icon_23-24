@@ -8,9 +8,7 @@ def load_processed_data(filepath):
     return pd.read_csv(filepath)
 
 def map_user_input_to_category(user_input):
-    """
-    Mappa l'input dell'utente a categorie riconosciute nel dataset.
-    """
+    """Mappa l'input dell'utente a categorie riconosciute nel dataset."""
     category_mapping = {
         'drammatico': 'Dramas',
         'drama': 'Dramas',
@@ -32,6 +30,7 @@ def map_user_input_to_category(user_input):
         'romantico': 'Romantic Movies',
         'avventura': 'Action & Adventure',
         'anime serie': 'Anime Series',
+        'anime': 'Anime Series',
         'bambini': 'Children & Family Movies',
         'kids': 'Children & Family Movies',
         'familiare': 'Children & Family Movies',
@@ -46,120 +45,104 @@ def map_user_input_to_category(user_input):
     
     return user_input
 
-def search_and_recommend(baseDir, df, user_input=None, top_n=5):
+def search_and_recommend(baseDir, df):
     """
-    Funzione principale per gestire la ricerca e le raccomandazioni, permettendo all'utente di inserire un titolo,
-    selezionare un titolo dalla lista o cercare per genere, e garantire che ogni nuovo input venga processato.
+    Funzione principale per gestire la ricerca e le raccomandazioni.
     """
-    try:
-        while True:
-            if user_input:
-                mapped_category = map_user_input_to_category(user_input)
-                category_recommendations = recommend_top_titles(df, content_category=mapped_category)
-
-                if isinstance(category_recommendations, pd.DataFrame) and not category_recommendations.empty:
-                    print(f"\nTitoli nella categoria '{mapped_category}':")
-                    for idx, row in category_recommendations.iterrows():
-                        print(f"- {row['title']}")
-
-                    next_action = input("\nSeleziona un titolo dalla lista, inserisci un nuovo titolo, o inserisci un nuovo genere: ")
-
-                    selected_title_info = search_title_with_suggestions(df, next_action)
-
-                    if 'exact_match' in selected_title_info:
-                        title_info = selected_title_info['exact_match'].iloc[0]
-                        print(f"\nHai scelto: {title_info['title']}")
-                        print(f"Regista: {title_info['director']}")
-                        print(f"Cast: {title_info['cast']}")
-                        print(f"Anno di rilascio: {title_info['release_year']}")
-                        print(f"Categoria: {title_info['content_category']}")
-                        print(f"Preferenze: {title_info['preferences']}")
-
-                        rating = int(input(f"Come valuti il titolo '{title_info['title']}' su una scala da 1 a 5? "))
-
-                        if rating <= 2:
-                            print(f"Sembra che questo titolo non sia di tuo gradimento. Che genere ti piace?")
-                            user_input = input("Inserisci un genere (es. 'Commedia', 'Drammatico'): ")
-                        else:
-                            print(f"Grazie! Hai valutato '{title_info['title']}' con un {rating}/5.")
-                            print(f"\nPerché ti è piaciuto '{title_info['title']}', ti raccomandiamo i titoli simili a '{title_info['title']}':")
-                            recommend_popular(df, title_info['content_category'])
-                            break
-                        continue
-
-                    elif 'suggestions' in selected_title_info:
-                        print("\nTitolo non trovato, ma abbiamo trovato questi suggerimenti:")
-                        for idx, row in selected_title_info['suggestions'].iterrows():
-                            print(f"- {row['title']}")
-                        user_input = input("Inserisci un titolo dalla lista o prova di nuovo: ")
-                        continue
-                    else:
-                        print("Il titolo scelto non è stato trovato. Riprova.")
-                        user_input = input("Inserisci un nuovo titolo o genere: ")
-                        continue
-
-                else:
-                    selected_title_info = search_title_with_suggestions(df, mapped_category)
-
-                    if 'suggestions' in selected_title_info:
-                        print("\nTitolo non trovato, ma abbiamo trovato questi suggerimenti:")
-                        for idx, row in selected_title_info['suggestions'].iterrows():
-                            print(f"- {row['title']}")
-                        user_input = input("Inserisci un titolo dalla lista o prova di nuovo: ")
-                        continue
-
-                    else:
-                        print(f"Nessun risultato trovato per la categoria o titolo: {mapped_category}.")
-                        user_input = input("Inserisci un nuovo genere o titolo per continuare: ")
-                        continue
-
-            else:
-                print("Nessun input fornito. Inserisci un titolo o una categoria per effettuare la ricerca.")
-                user_input = input("Inserisci un nuovo genere o titolo per continuare: ")
-
-    except Exception as e:
-        print(f"Errore durante la ricerca e raccomandazione: {e}")
-        return None
-
-
-
-def search_and_recommend_titoli(baseDir):
-    """
-    Funzione che gestisce la raccomandazione e poi visualizza il menu.
-    """
-    df = load_processed_data(os.path.join(baseDir, '..','data', 'processed_data.csv'))
     while True:
         user_input = input("Inserisci un titolo o una categoria (es. 'Grey's Anatomy' o 'Comedy'): ")
+        mapped_category = map_user_input_to_category(user_input)
         
-        # Effettua la raccomandazione
-        search_and_recommend(baseDir, df, user_input=user_input)
+        # Cerca prima per titolo
+        title_info = search_title_with_suggestions(df, user_input)
         
-        # Dopo la raccomandazione, visualizza il menu
-        while True:
-            print("\nMenu:")
-            print("1) Visualizza i 5 titoli di film più popolari")
-            print("2) Visualizza i 5 titoli di serie TV più popolari")
-            print("3) Visualizza i generi più popolari di Netflix")
-            print("4) Esci")
-            
-            choice = input("Seleziona un'opzione (1-4): ")
-            
-            if choice == '1':
-                show_top_movies(df)
-            elif choice == '2':
-                show_top_tv_shows(df)
-            elif choice == '3':
-                show_most_popular_genres(df, baseDir)
-            elif choice == '4':
-                print("Uscita dal programma.")
-                return
+        if 'exact_match' in title_info:
+            show_title_info(title_info['exact_match'].iloc[0])
+            rating = get_user_rating(title_info['exact_match'].iloc[0]['title'])
+            if rating <= 2:
+                preferred_genre = input("Sembra che questo titolo non ti sia piaciuto. Che genere preferisci? ")
+                recommended_titles = recommend_top_titles(df, content_category=map_user_input_to_category(preferred_genre))
+                if not recommended_titles.empty:
+                    print(f"\nEcco i titoli consigliati nella categoria '{preferred_genre}':")
+                    for idx, row in recommended_titles.iterrows():
+                        print(f"- {row['title']}")
+                else:
+                    print("Nessun titolo trovato per la categoria specificata.")
             else:
-                print("Selezione non valida. Riprova.")
+                print(f"\nPerché ti è piaciuto '{title_info['exact_match'].iloc[0]['title']}', ti raccomandiamo titoli simili:")
+                recommend_popular(df, title_info['exact_match'].iloc[0]['content_category'])
+            show_statistics_menu(df, baseDir)
+        elif 'suggestions' in title_info:
+            print("\nTitolo non trovato, ma abbiamo trovato questi suggerimenti:")
+            for idx, row in title_info['suggestions'].iterrows():
+                print(f"- {row['title']}")
+            continue
+        else:
+            # Se non è un titolo, cerca per categoria
+            category_recommendations = recommend_top_titles(df, content_category=mapped_category)
+            if not category_recommendations.empty:
+                print(f"\nTitoli nella categoria '{mapped_category}':")
+                for idx, row in category_recommendations.iterrows():
+                    print(f"- {row['title']} (tipo: {row['content_type']})")
+                continue
+            else:
+                print(f"Nessun risultato trovato per la categoria o titolo: {mapped_category}.")
+
+def show_title_info(title_info):
+    """Mostra le informazioni di un titolo."""
+    print(f"\nTitolo: {title_info['title']}")
+    print(f"Regista: {title_info['director']}")
+    print(f"Cast: {title_info['cast']}")
+    print(f"Anno di rilascio: {title_info['release_year']}")
+    print(f"Categoria: {title_info['content_category']}")
+    print(f"Preferenze: {title_info['preferences']}")
+
+def get_user_rating(title):
+    """Chiede all'utente di valutare un titolo."""
+    while True:
+        try:
+            rating = int(input(f"Come valuti il titolo '{title}' su una scala da 1 a 5? "))
+            if 1 <= rating <= 5:
+                return rating
+            else:
+                print("Per favore, inserisci un numero da 1 a 5.")
+        except ValueError:
+            print("Input non valido. Inserisci un numero da 1 a 5.")
+
+def recommend_popular(df, category):
+    """Raccomanda titoli popolari basati sulla categoria."""
+    popular_titles = df[df['content_category'] == category].nlargest(5, 'preferences')
+    for idx, row in popular_titles.iterrows():
+        print(f"- {row['title']} (Preferenze: {row['preferences']})")
+
+def show_statistics_menu(df, baseDir):
+    """Mostra il menu delle statistiche."""
+    while True:
+        print("\nMenu:")
+        print("1) Visualizza i 5 titoli di film più popolari")
+        print("2) Visualizza i 5 titoli di serie TV più popolari")
+        print("3) Visualizza i generi più popolari di Netflix")
+        print("4) Nuova ricerca")
+        print("5) Torna al menu principale")
+        
+        choice = input("Seleziona un'opzione (1-5): ")
+        
+        if choice == '1':
+            show_top_movies(df)
+        elif choice == '2':
+            show_top_tv_shows(df)
+        elif choice == '3':
+            show_most_popular_genres(df, baseDir)
+        elif choice == '4':
+            return  # Torna alla funzione di ricerca
+        elif choice == '5':
+            break  # Esce dal menu delle statistiche e torna al menu principale
+        else:
+            print("Selezione non valida. Riprova.")
+
 
 def show_top_movies(dataframe):
-    """
-    Mostra i 5 titoli di film più popolari direttamente sullo schermo.
-    """
+    """Mostra i 5 titoli di film più popolari."""
     top_movies = dataframe[dataframe['content_category'] == 'Movie'].nlargest(5, 'preferences')
     if not top_movies.empty:
         print("\nTop 5 Film più popolari:")
@@ -169,9 +152,7 @@ def show_top_movies(dataframe):
         print("Nessun film trovato.")
 
 def show_top_tv_shows(dataframe):
-    """
-    Mostra i 5 titoli di serie TV più popolari direttamente sullo schermo.
-    """
+    """Mostra i 5 titoli di serie TV più popolari."""
     top_tv_shows = dataframe[dataframe['content_category'] == 'TV Show'].nlargest(5, 'preferences')
     if not top_tv_shows.empty:
         print("\nTop 5 Serie TV più popolari:")
@@ -180,16 +161,14 @@ def show_top_tv_shows(dataframe):
     else:
         print("Nessuna serie TV trovata.")
 
+
 def show_most_popular_genres(dataframe, baseDir):
-    """
-    Mostra i generi più popolari su Netflix e salva il grafico.
-    """
-    save_dir = os.path.join(baseDir,'..' , 'results', 'visualizations', 'statistic_recommander')
+    """Mostra i generi più popolari su Netflix e salva il grafico."""
+    save_dir = os.path.join(baseDir, '..', 'results', 'visualizations', 'statistic_recommander')
     os.makedirs(save_dir, exist_ok=True)
     
     genre_counts = dataframe['content_category'].value_counts().head(10)
     
-    # Set a smaller figure size and use a color palette
     plt.figure(figsize=(12, 6))
     genre_counts.sort_values().plot(kind='bar', color=plt.cm.viridis(range(len(genre_counts))))
     plt.title('Most Popular Genre on Netflix', fontsize=16, color='blue')
@@ -204,10 +183,7 @@ def show_most_popular_genres(dataframe, baseDir):
     print(f"Grafico salvato in: {save_path}")
 
 def search_title_with_suggestions(dataframe, search_query, top_n=5):
-    """
-    Cerca un titolo nel dataset. Se il titolo è trovato, restituisce le informazioni.
-    Se non trovato, suggerisce titoli simili basati sulla similarità testuale.
-    """
+    """Cerca un titolo nel dataset e suggerisce titoli simili se non trovato."""
     search_query = search_query.lower().strip()
     exact_match = dataframe[dataframe['title'].str.lower() == search_query]
     
@@ -227,18 +203,16 @@ def search_title_with_suggestions(dataframe, search_query, top_n=5):
         return {"suggestions": suggestions}
     
     return {"message": "No matching titles found."}
+
 def recommend_top_titles(dataframe, content_category=None, top_n=10):
-    """
-    Raccomanda i titoli più popolari in base al campo 'preferences'.
-    Se non viene fornita una categoria specifica, restituisce i titoli globalmente più popolari.
-    """
+    """Raccomanda i titoli più popolari in base al campo 'preferences'."""
     if content_category:
         recommendations = dataframe[dataframe['content_category'].str.contains(content_category, na=False)]
     else:
         recommendations = dataframe
 
     if recommendations.empty:
-        return pd.DataFrame()  # Return an empty DataFrame if no recommendations are available
+        return pd.DataFrame()
     
     top_recommendations = recommendations.sort_values(by='preferences', ascending=False).head(top_n)
     return top_recommendations
