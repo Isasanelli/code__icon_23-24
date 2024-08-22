@@ -13,6 +13,7 @@ def map_user_input_to_category(user_input):
         'drammatico': 'Dramas',
         'drama': 'Dramas',
         'dramma': 'Dramas',
+        'dramas': 'Dramas',
         'commedia': 'Comedies',
         'comedy': 'Comedies',
         'comico': 'Comedies',
@@ -22,13 +23,16 @@ def map_user_input_to_category(user_input):
         'crime': 'Crime TV Shows',
         'crimine': 'Crime TV Shows',
         'thriller': 'Thrillers',
-        'azione': 'Action & Adventure',
         'reality': 'Reality TV',
         'reality show': 'Reality TV',
         'reality tv': 'Reality TV',
         'horror': 'Horror Movies',
         'romantico': 'Romantic Movies',
         'avventura': 'Action & Adventure',
+        'adventure': 'Action & Adventure',
+        'azione': 'Action & Adventure',
+        'action': 'Action & Adventure',
+        'fantasy': 'Anime Series',
         'anime serie': 'Anime Series',
         'anime': 'Anime Series',
         'bambini': 'Children & Family Movies',
@@ -140,9 +144,9 @@ def show_statistics_menu(df, baseDir):
         elif choice == '3':
             show_most_popular_genres(df, baseDir)
         elif choice == '4':
-            return  # Torna alla funzione di ricerca
+            return 'ricerca'  # Torna alla funzione di ricerca
         elif choice == '5':
-            break  # Esce dal menu delle statistiche e torna al menu principale
+            return 'menu'  # Torna al menu principale
         else:
             print("\nSelezione non valida. Riprova.")
 

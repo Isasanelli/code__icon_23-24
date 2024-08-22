@@ -48,21 +48,41 @@ def search_and_recommend_titoli_wrapper(baseDir, df):
     if not is_classification_done:
         print("Errore: Esegui prima la classificazione.")
         return
+    
     while True:
         try:
-            user_input = input("\nVuoi cercare per Titolo o Categoria? \nScrivi la tua preferenza: ").strip().lower()
+            user_input = input("\nVuoi cercare per Titolo, Categoria o tornare al Menu principale? \nScrivi la tua preferenza: ").strip().lower()
             if user_input == "titolo":
-                search_by_title(df)
+                result = search_by_title(df)
+                if result == 'menu':
+                    return  # Torna al menu principale
+                elif result == 'ricerca':
+                    continue  # Torna alla selezione di ricerca
             elif user_input == "categoria":
-                search_by_category(df)
+                result = search_by_category(df)
+                if result == 'menu':
+                    return  # Torna al menu principale
+                elif result == 'ricerca':
+                    continue  # Torna alla selezione di ricerca
+            elif user_input == "menu":
+                return  # Torna al menu principale
             else:
-                print("\nOpzione non valida. Per favore scegli 'titolo' o 'categoria'.")
+                print("\nOpzione non valida. Per favore scegli 'titolo', 'categoria' o 'menu'.")
         except Exception as e:
             print(f"Errore durante la ricerca e raccomandazione: {e}")
 
+
+
+
 def search_by_title(df):
     while True:
-        user_input = input("\nInserisci un titolo (es. 'Grey's Anatomy', 'The Godfather'): ").strip().lower()
+        user_input = input("\nInserisci un titolo (es. 'Grey's Anatomy', 'The Godfather') o 'back' per tornare alla selezione di ricerca, o 'menu' per tornare al menu principale: ").strip().lower()
+        
+        if user_input == 'menu':
+            return 'menu'  # Torna al menu principale
+        elif user_input == 'back':
+            return 'ricerca'  # Torna alla selezione di ricerca
+        
         title_info = search_title_with_suggestions(df, user_input)
         
         if 'exact_match' in title_info:
@@ -72,8 +92,11 @@ def search_by_title(df):
                 preferred_genre = input("Sembra che questo titolo non ti sia piaciuto. Che genere preferisci? ")
                 search_by_category(df, map_user_input_to_category(preferred_genre))
             else:
-                recommend_popular(df, title_info['exact_match'].iloc[0]['content_category'])
-                show_statistics_menu(df, os.path.dirname(os.path.abspath(__file__)))
+                result = show_statistics_menu(df, os.path.dirname(os.path.abspath(__file__)))
+                if result == 'menu':
+                    return 'menu'  # Torna al menu principale
+                elif result == 'ricerca':
+                    return 'ricerca'  # Torna alla selezione di ricerca
             break
         elif 'suggestions' in title_info:
             print("\nTitolo non trovato, ma abbiamo trovato questi suggerimenti:")
@@ -83,17 +106,21 @@ def search_by_title(df):
             print(f"Nessun risultato trovato per: {user_input}.")
             continue
 
-        
-        
+
+
 def search_by_category(df, category=None):
     if category is None:
-        user_input = input("\nInserisci una categoria (es. 'Comedy', 'Drama', 'Horror'): ").strip().lower()
+        user_input = input("\nInserisci una categoria (es. 'Comedy', 'Drama', 'Horror'), 'ricerca' per tornare alla selezione di ricerca, o 'menu' per tornare al menu principale: ").strip().lower()
+        
+        if user_input == 'menu':
+            return 'menu'  # Torna al menu principale
+        elif user_input == 'ricerca':
+            return 'ricerca'  # Torna alla selezione di ricerca
+        
         category = map_user_input_to_category(user_input)
     
-    # Ottieni le raccomandazioni per la categoria, senza stampare
     category_recommendations = recommend_top_titles(df, content_category=category)
     
-    # Stampa la lista dei titoli una sola volta
     if not category_recommendations.empty:
         print(f"\nTitoli nella categoria '{category}':")
         for idx, row in category_recommendations.iterrows():
@@ -101,7 +128,6 @@ def search_by_category(df, category=None):
     else:
         print(f"Nessun risultato trovato per la categoria: {category}.")
     
-    # Mostra il menu di selezione solo una volta, senza ristampare i titoli
     while True:
         print("\nMenu di Selezione:")
         print("1) Inserire un titolo della lista")
@@ -113,11 +139,13 @@ def search_by_category(df, category=None):
             search_by_title(df)
             break
         elif title_choice == '2':
-            return
+            return 'ricerca'  # Torna alla selezione di ricerca
         elif title_choice == '3':
-            return  # Questo interrompe il ciclo e torna al menu principale
+            return 'menu'  # Torna al menu principale
         else:
             print("Opzione non valida. Riprova.")
+
+
 
 
 
