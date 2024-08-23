@@ -1,162 +1,112 @@
-# Progetto di Analisi e Classificazione di Film e Serie TV su Amazon Prime
+
+# Netflix Titles Classification and Recommendation System
 
 ## Descrizione del Progetto
 
-Questo progetto è stato sviluppato per analizzare un dataset di film e serie TV disponibili su Amazon Prime. Il dataset comprende informazioni come cast, registi, valutazioni, anno di rilascio e durata. Gli obiettivi principali del progetto includono:
+Questo progetto si focalizza sulla creazione di un sistema di classificazione e raccomandazione per i titoli più popolari presenti su Netflix, basato su tecniche di Machine Learning e su una Knowledge Base (KB) sviluppata in Prolog. Il sistema consente di preprocessare i dati, creare embeddings, addestrare modelli di classificazione supervisionati, generare raccomandazioni basate sulle preferenze dell'utente, e infine, generare automaticamente una KB in Prolog per supportare il ragionamento simbolico.
 
-## Descrizione dei File Principali
+## Funzionalità Principali
 
-1. **analyze_data.py** :
-    Questo script analizza i dati provenienti dal dataset preprocessato. Genera visualizzazioni che mostrano la distribuzione dei film e delle serie TV per categoria, anno di rilascio, ecc.
-
-2. **clustering.py**:
-    Questo script esegue il clustering sui film e sulle serie TV basandosi sugli embeddings generati. Il clustering è utile per raggruppare contenuti simili.
-
-3. **create_embedding.py**:
-    Questo script genera gli embeddings per i titoli e le categorie di contenuto utilizzando spaCy. Gli embeddings sono poi utilizzati per il clustering e altre analisi.
-
-4. **cross_validation.py**:
-    Esegue la validazione incrociata per valutare le prestazioni dei modelli di classificazione (es. Random Forest, Naive Bayes). I risultati della cross-validation sono salvati come file CSV.
-
-5. **generate_prolog_files.py**:
-    Genera i file Prolog che contengono i fatti e le regole della base di conoscenza. Questo include sia i fatti relativi alla classificazione sia quelli per le raccomandazioni.
-
-6. **kb.pl**:
-    Questo file rappresenta la base di conoscenza principale in Prolog. Contiene tutte le regole e i fatti necessari per effettuare ragionamenti logici, sia per la classificazione che per le raccomandazioni.
-
-7. **preprocess_data_dataset.py**:
-    Questo script esegue il preprocessing del dataset originale di Netflix. Pulisce i dati, gestisce i valori mancanti e crea nuove feature (es. lunghezza del titolo, mese e stagione di rilascio).
-
-8. **probabilistic_learning.py**:
-    Implementa un modello probabilistico utilizzando Random Forest. Il modello viene valutato e genera una curva ROC per visualizzare le performance.
-
-9. **supervised.py**:
-    Contiene l'implementazione di diversi modelli di classificazione supervisionata (es. Decision Tree, Random Forest, AdaBoost, Naive Bayes, K-NN). Genera report di classificazione e curve di apprendimento.
+- **Preprocessing dei Dati**: Pulizia e trasformazione dei dati per prepararli alla fase di machine learning.
+- **Creazione di Embeddings**: Generazione di rappresentazioni numeriche per i titoli e le categorie.
+- **Classificazione Supervisionata**: Addestramento di vari modelli di classificazione (Decision Tree, Random Forest, SVM, XGBoost, MLP) e validazione incrociata per garantire risultati robusti.
+- **Raccomandazione**: Sistema di raccomandazione basato su titolo e categoria, con feedback dell'utente per migliorare la precisione delle raccomandazioni.
+- **Generazione della KB in Prolog**: Creazione automatica di una KB basata sui risultati del machine learning, che include fatti e regole per il ragionamento.
+- **Interfaccia Utente da Terminale**: Navigazione semplice con menu per eseguire tutte le operazioni principali.
 
 ## Struttura del Progetto
 
-Il progetto è organizzato nelle seguenti directory:
-
-```
 CODE_ICON_23-24/
 │
+├── .idea/
 ├── .venv/
-│
 ├── data/
-│   ├── content_category_embeddings.npy
-│   ├── netflix_titles.csv
-│   ├── processed_data.csv
-│   ├── title_embeddings.npy
+│   └── netflix_titles.csv
 │
 ├── results/
-│   ├── knowledge_base/
-│   │   ├── classification.pl
-│   │   ├── recommendation.pl
 │   ├── models/
-│   │   ├── clustering/
-│   │   ├── cross_validation/
-│   │   ├── probabilistic_learning/
-│   │   ├── supervised/
+│   │   └── supervised/
 │   ├── visualizations/
 │   │   ├── analyze_data/
-│   │   ├── clustering/
-│   │   ├── probabilistic_learning/
-│   │   ├── supervised/
+│   │   ├── cross_validation/
+│   │   ├── statistic_recommander/
+│   │   └── supervised/
 │
 ├── scripts/
+│   ├── __pycache__/
 │   ├── analyze_data.py
-│   ├── clustering.py
 │   ├── create_embedding.py
 │   ├── cross_validation.py
 │   ├── generate_prolog_files.py
-│   ├── kb.pl
+│   ├── main.py
 │   ├── preprocess_data_dataset.py
-│   ├── probabilistic_learning.py
-│   ├── supervised.py
+│   ├── search_and_recommendation.py
+│   └── supervised.py
 │
 ├── .gitignore
 ├── README.md
-├── requirements.txt
+└── requirements.txt
 
 
-```
+## Requisiti
 
-## Passi per Eseguire il Codice
+- **Python 3.12.5**
+- Librerie Python:
+  - `pandas`
+  - `numpy`
+  - `matplotlib`
+  - `scikit-learn`
+  - `imblearn`
+  - `xgboost`
+  - `nltk` (se necessario per l'elaborazione del testo)
+- **SWI-Prolog** (per eseguire la KB generata in Prolog) versione 8.0.3-1
+  
+- Installare
+   ```
+   python -m spacy download en_core_web_sm
+   ```
 
-1. **Impostare l'ambiente**
-    
-    ```bash
-    python -m venv .venv
-    .venv\\Scripts\\activate
-    
-    ```
-    
-2. **Installare le Librerie Necessarie**
-    - Usa il file `requirements.txt` per installare tutte le librerie necessarie:
-        
-        ```bash
-        pip install -r requirements.txt
-        
-        ```
-        
-    - Dopo aver installato `spacy`, scarica il modello di lingua inglese:
-        
-        ```bash
-        python -m spacy download en_core_web_sm
-        
-        ```
-        
+## Installazione
+
+1. **Clona il repository:**
+   ```bash
+   git clone https://github.com/tuo-username/tuo-progetto.git
+   cd tuo-progetto
+   ```
+
+2. **Installa i requisiti:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Prepara i dati:**
+   Assicurati che i dati necessari siano presenti nella directory `data` con il nome `processed_data.csv`.
 
 ## Esecuzione del Progetto
 
-1. **Preprocessamento dei Dati:** Avviare `preprocess_prime_dataset.py` per caricare e pulire il dataset.
-2. **Analisi dei Dati:** Eseguire `analyze_data.py` per generare visualizzazioni esplorative.
-3. **Clustering:** Avviare `clustering.py` per eseguire il clustering dei film e delle serie TV.
-4. **Apprendimento Supervisionato:** Eseguire `supervised.py` per addestrare e valutare un modello supervisionato.
-5. **Apprendimento Probabilistico:** Avviare `probabilistic_learning.py` per addestrare un modello probabilistico e generare la curva ROC.
-6. **Cross-Validation:** Eseguire `cross_validation.py` per valutare le performance dei modelli con la validazione incrociata.
-7. **Generazione di Fatti Prolog:** Avviare `generate_prolog_files.py` per creare fatti Prolog basati sui dati.
-8. **Creazione della Knowledge Base:** Eseguire `knowledge_base.py` per generare l'ontologia RDF/OWL.
+1. **Avvia il programma principale:**
+   ```bash
+   python main.py
+   ```
 
-## Esecuzione degli Script
+2. **Opzioni disponibili nel Menu principale:**
+   - `Classificazione dei Film e Serie TV`: Esegue il preprocessing, l'addestramento dei modelli, e la validazione incrociata.
+   - `Ricerca Film o Serie TV`: Permette di cercare titoli o categorie e ricevere raccomandazioni personalizzate.
+   - `Generazione della KB`: Genera la Knowledge Base in Prolog basata sui risultati del machine learning.
+   - `Uscita`: Termina l'esecuzione del programma.
 
-Per eseguire le componenti del progetto in modo controllato, eseguire i seguenti script nell'ordine indicato:
+## Come Usare il Sistema
 
-```bash
-python scripts/preprocess_prime_dataset.py
-python scripts/create_embedding.py
-python scripts/analyze_data.py
-python scripts/clustering.py
-python scripts/supervised.py
-python scripts/probabilistic_learning.py
-python scripts/cross_validation.py
-python scripts/generate_prolog_files.py
-python scripts/knowledge_base.py
+- **Classificazione**: Avvia il processo di classificazione dei dati, che include la creazione di embeddings, l'addestramento di modelli, e la validazione dei risultati.
+- **Ricerca e Raccomandazione**: Inserisci un titolo o una categoria per ricevere raccomandazioni personalizzate.
+- **Knowledge Base**: La KB in Prolog verrà generata automaticamente dopo la classificazione, permettendo di effettuare interrogazioni basate sui fatti e le regole generate.
 
-```
+## Collaboratori
 
-## Librerie Richieste
+Belforte Matteo
+Sasanelli Ilenia
 
-Il progetto utilizza le seguenti librerie:
 
-- pandas
-- numpy
-- spacy
-- tensorflow
-- nltk
-- scikit-learn
-- matplotlib
-- rdflib
-- pyswip
-- pgmpy
-- SPARQLWrapper
-- openpyxl
-- wordcloud
-- seaborn
-- imbalanced-learn
+## Licenza
 
-Le librerie possono essere installate utilizzando il file `requirements.txt`.
-
-## Conclusioni
-
-Questo progetto rappresenta un approccio integrato per l'analisi e la modellazione dei dati di Amazon Prime. Combina tecniche di machine learning con sistemi basati sulla conoscenza, inclusa la creazione di ontologie e inferenze basate su Prolog. L'obiettivo finale è creare un sistema robusto per classificare e prevedere vari attributi relativi ai titoli disponibili su Amazon Prime.
+Questo progetto è rilasciato sotto la licenza MIT. Vedi il file LICENSE per maggiori dettagli.

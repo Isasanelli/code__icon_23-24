@@ -18,20 +18,31 @@ def generate_prolog_rules(df, output_file):
 
 def generate_prolog_files(baseDir):
     """Funzione principale per generare i file Prolog."""
-    filepath = os.path.join(baseDir, 'data', 'processed_data.csv')
+    filepath = os.path.join(baseDir,'..' ,'data', 'processed_data.csv')
     df = load_processed_data(filepath)
 
     # Percorso di output per i file Prolog
-    prolog_output_dir = os.path.join(baseDir, 'results', 'prolog')
+    prolog_output_dir = os.path.join(baseDir, '..' ,'results', 'prolog')
     os.makedirs(prolog_output_dir, exist_ok=True)
 
     # File di output Prolog
-    prolog_file_path = os.path.join(prolog_output_dir, 'knowledge_base.pl')
+    prolog_file_path = os.path.join(prolog_output_dir, 'knowledge_base_fact.pl')
+
+    # Inizializzazione del file
+    with open(prolog_file_path, 'w') as f:
+        f.write("% Fatti generati automaticamente dai dati\n\n")
 
     # Generazione dei fatti per Prolog
     generate_prolog_facts(df, 'title', 'title', prolog_file_path)
-    generate_prolog_facts(df, 'director', 'director', prolog_file_path)
     generate_prolog_facts(df, 'content_category', 'content_category', prolog_file_path)
+    
+    # Se il CSV contiene colonne per rating, type, director e preference
+    if 'rating' in df.columns:
+        generate_prolog_facts(df, 'rating', 'rating', prolog_file_path)
+    if 'type' in df.columns:
+        generate_prolog_facts(df, 'type', 'type', prolog_file_path)
+    if 'preference' in df.columns:
+        generate_prolog_facts(df, 'preference', 'preference_for', prolog_file_path)
     
     # Generazione delle regole per Prolog
     generate_prolog_rules(df, prolog_file_path)

@@ -35,16 +35,18 @@ def clean_data(df):
     
     return df
 
+
+
 def preprocess_data(baseDir):
     """Gestisce il preprocessing completo."""
-    # Percorso corretto per il file di input di Netflix
     filepath = os.path.join(baseDir, '..', 'data', 'netflix_titles.csv')
     output_path = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
-    
-    # Caricamento e pulizia del dataset
-    df = load_dataset(filepath)
+
+    # Caricamento del dataset con encoding UTF-8
+    df = pd.read_csv(filepath, encoding='utf-8')
+    df.replace("\u011f", "g", inplace=True)
     df = clean_data(df)
-    
-    # Salvataggio del dataset preprocessato
-    df.to_csv(output_path, index=False)
+
+    # Salvataggio del dataset preprocessato con encoding UTF-8
+    df.to_csv(output_path, index=False, encoding='utf-8')
     print(f"Dataset preprocessato e salvato in {output_path}")

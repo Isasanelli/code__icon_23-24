@@ -150,8 +150,6 @@ def show_statistics_menu(df, baseDir):
         else:
             print("\nSelezione non valida. Riprova.")
 
-
-
 def show_top_movies(dataframe):
     """Mostra i 5 titoli di film più popolari."""
     top_movies = dataframe[dataframe['content_category'].str.contains('Movie', na=False)].nlargest(5, 'preferences')

@@ -2,10 +2,7 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.linear_model import LinearRegression, Ridge
-from sklearn.preprocessing import PolynomialFeatures, StandardScaler
-from sklearn.metrics import mean_squared_error
-import numpy as np
+from sklearn.preprocessing import StandardScaler
 
 def plot_distribution(df, column, title, output_dir, top_n=None, interval=None, filter_type=None):
     """Genera e salva un grafico di distribuzione per una colonna specificata del DataFrame."""
@@ -67,84 +64,6 @@ def apply_standard_scaler(X):
     scaler = StandardScaler()
     return scaler.fit_transform(X)
 
-def linear_regression_analysis(df, output_dir):
-    """Applica la regressione lineare e salva i risultati."""
-    X = df['release_year'].values.reshape(-1, 1)
-    y = df['release_year'].values  # Cambia 'y' con una variabile pertinente, ad esempio, `release_year`
-    
-    # Normalizzazione dei dati
-    X_scaled = apply_standard_scaler(X)
-    
-    linear_regressor = LinearRegression()
-    linear_regressor.fit(X_scaled, y)
-    y_pred_linear = linear_regressor.predict(X_scaled)
-    
-    linear_mse = mean_squared_error(y, y_pred_linear)
-    print(f"Linear Regression MSE: {linear_mse}")
-    
-    plt.figure(figsize=(10, 6))
-    plt.scatter(X, y, color='black', label='Data Points')
-    plt.plot(X, y_pred_linear, color='blue', label='Linear Regression')
-    plt.title('Linear Regression on Release Year Over Time')
-    plt.xlabel('Year of Release')
-    plt.ylabel('Release Year')  # Aggiorna l'etichetta
-    plt.legend()
-    plt.savefig(os.path.join(output_dir, 'linear_regression.png'))
-    plt.show()
-
-def polynomial_regression_analysis(df, output_dir):
-    """Applica la regressione polinomiale e salva i risultati."""
-    X = df['release_year'].values.reshape(-1, 1)
-    y = df['release_year'].values  # Cambia 'y' con una variabile pertinente, ad esempio, `release_year`
-    
-    # Normalizzazione dei dati
-    X_scaled = apply_standard_scaler(X)
-    
-    polynomial_features = PolynomialFeatures(degree=3)
-    X_poly = polynomial_features.fit_transform(X_scaled)
-    
-    poly_regressor = LinearRegression()
-    poly_regressor.fit(X_poly, y)
-    y_pred_poly = poly_regressor.predict(X_poly)
-    
-    poly_mse = mean_squared_error(y, y_pred_poly)
-    print(f"Polynomial Regression MSE: {poly_mse}")
-    
-    plt.figure(figsize=(10, 6))
-    plt.scatter(X, y, color='black', label='Data Points')
-    plt.plot(X, y_pred_poly, color='red', label='Polynomial Regression')
-    plt.title('Polynomial Regression on Release Year Over Time')
-    plt.xlabel('Year of Release')
-    plt.ylabel('Release Year')  # Aggiorna l'etichetta
-    plt.legend()
-    plt.savefig(os.path.join(output_dir, 'polynomial_regression.png'))
-    plt.show()
-
-def ridge_regression_analysis(df, output_dir):
-    """Applica la regressione Ridge e salva i risultati."""
-    X = df['release_year'].values.reshape(-1, 1)
-    y = df['release_year'].values  # Cambia 'y' con una variabile pertinente, ad esempio, `release_year`
-    
-    # Normalizzazione dei dati
-    X_scaled = apply_standard_scaler(X)
-    
-    ridge_regressor = Ridge(alpha=1.0)
-    ridge_regressor.fit(X_scaled, y)
-    y_pred_ridge = ridge_regressor.predict(X_scaled)
-    
-    ridge_mse = mean_squared_error(y, y_pred_ridge)
-    print(f"Ridge Regression MSE: {ridge_mse}")
-    
-    plt.figure(figsize=(10, 6))
-    plt.scatter(X, y, color='black', label='Data Points')
-    plt.plot(X, y_pred_ridge, color='green', label='Ridge Regression')
-    plt.title('Ridge Regression on Release Year Over Time')
-    plt.xlabel('Year of Release')
-    plt.ylabel('Release Year')  # Aggiorna l'etichetta
-    plt.legend()
-    plt.savefig(os.path.join(output_dir, 'ridge_regression.png'))
-    plt.show()
-
 def save_statistics(df, output_dir):
     """Salva le statistiche più popolari in un CSV."""
     popular_stats = df.groupby('content_category').agg({
@@ -184,11 +103,6 @@ def analyze_data(baseDir):
     
     # Visualizza la distribuzione per categoria di contenuto
     plot_distribution(df, 'content_category', 'Distribution of Content Categories', output_dir, top_n=20)
-
-    # Analisi di regressione
-    linear_regression_analysis(df, output_dir)
-    polynomial_regression_analysis(df, output_dir)
-   
 
     # Salva le statistiche più popolari
     save_statistics(df, output_dir)
