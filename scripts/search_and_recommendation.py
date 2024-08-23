@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from difflib import get_close_matches
 
+
 def load_processed_data(filepath):
     """Carica i dati preprocessati dal file CSV."""
     return pd.read_csv(filepath)
@@ -39,6 +40,10 @@ def map_user_input_to_category(user_input):
         'kids': 'Children & Family Movies',
         'familiare': 'Children & Family Movies',
         'famiglia': 'Children & Family Movies',
+        'scientifico': 'Sci-Fi & Fantasy',
+        'sci-fi': 'Sci-Fi & Fantasy',
+        'fantastico': 'Sci-Fi & Fantasy',
+        'mistero': 'Mystery',
     }
 
     user_input = user_input.lower().strip()
@@ -48,70 +53,174 @@ def map_user_input_to_category(user_input):
             return category_mapping[key]
     
     return user_input
-
-def search_and_recommend(baseDir, df):
-    """
-    Funzione principale per gestire la ricerca e le raccomandazioni.
-    """
+def search_by_title(df):
     while True:
-        print("\n" + "="*50)
-        print(" Inserisci un titolo o una categoria (es. 'Grey's Anatomy' o 'Comedy'):")
-        print("="*50)
-        user_input = input(" >> ").strip()
-        mapped_category = map_user_input_to_category(user_input)
+        print("\n" + "="*60)
+        print(" Seleziona un'opzione:")
+        print("="*60)
+        print(" 1. Scrivere un titolo (es. 'Grey's Anatomy', 'Breaking Bad')")
+        print(" 2. Scrivere 'ricerca' per tornare alla selezione di ricerca")
+        print(" 3. Scrivere 'menu' per tornare al menu principale")
+        print("="*60)
+        user_input = input(" >> ").strip().lower()
         
-        # Cerca prima per titolo
-        title_info = search_title_with_suggestions(df, user_input)
-        
-        if 'exact_match' in title_info:
-            show_title_info(title_info['exact_match'].iloc[0])
-            rating = get_user_rating(title_info['exact_match'].iloc[0]['title'])
-            if rating <= 2:
-                preferred_genre = input(" Sembra che questo titolo non ti sia piaciuto.\n\nChe genere preferisci?")
-                recommended_titles = recommend_top_titles(df, content_category=map_user_input_to_category(preferred_genre))
-                if not recommended_titles.empty:
-                    print(f"\n Ecco i titoli consigliati nella categoria '{preferred_genre}':\n")
-                    for idx, row in recommended_titles.iterrows():
-                        print(f"- {row['title']} ({row['content_category']}, Preferenze: {row['preferences']})")
-                else:
-                    print(" Nessun titolo trovato per la categoria specificata.")
-            else:
-                print(f"\n Perché ti è piaciuto '{title_info['exact_match'].iloc[0]['title']}', ti raccomandiamo titoli simili:\n")
-                recommend_popular(df, title_info['exact_match'].iloc[0]['content_category'])
-            show_statistics_menu(df, baseDir)
-        elif 'suggestions' in title_info:
-            print("\n Titolo non trovato, ma abbiamo trovato questi suggerimenti:\n")
-            for idx, row in title_info['suggestions'].iterrows():
-                print(f"- {row['title']} ({row['content_category']}, Preferenze: {row['preferences']})")
-            continue
-        else:
-            # Se non è un titolo, cerca per categoria
-            category_recommendations = recommend_top_titles(df, content_category=mapped_category)
-            if not category_recommendations.empty:
-                print(f"\n Titoli nella categoria '{mapped_category}':\n")
-                for idx, row in category_recommendations.iterrows():
-                    print(f"- {row['title']} ({row['content_category']}, Preferenze: {row['preferences']})")
-                continue
-            else:
-                print(f" Nessun risultato trovato per la categoria o titolo: {mapped_category}.")
+        if user_input == 'menu' or user_input == '3':
+            return 'menu'
+        elif user_input == 'ricerca' or user_input == '2':
+            return 'ricerca'  # Torna a search_and_recommend_titoli_wrapper
+        elif user_input == '1':
+            title_input = input(" Inserisci il titolo: ").strip().lower()
+            title_info = search_title_with_suggestions(df, title_input)
 
+            if 'exact_match' in title_info:
+                show_title_info(title_info['exact_match'].iloc[0])
+                rating = get_user_rating(title_info['exact_match'].iloc[0]['title'])
+                if rating <= 2:
+                    preferred_genre = input("\nSembra che questo titolo non ti sia piaciuto. Che genere preferisci? ")
+                    result = search_by_category(df, map_user_input_to_category(preferred_genre))
+                    if result == 'menu':
+                        return 'menu'
+                    elif result == 'ricerca':
+                        return 'ricerca'  # Torna a search_and_recommend_titoli_wrapper
+                else:
+                    recommend_popular(df, title_info['exact_match'].iloc[0]['content_category'], exclude_title=title_info['exact_match'].iloc[0]['title'])
+                    result = post_rating_menu(df, os.path.dirname(os.path.abspath(__file__)))
+                    if result == 'menu':
+                        return 'menu'
+                    elif result == 'ricerca':
+                        return 'ricerca'  # Torna a search_and_recommend_titoli_wrapper
+            elif 'suggestions' in title_info:
+                print("\nTitolo non trovato, ma abbiamo trovato questi suggerimenti:")
+                for idx, row in title_info['suggestions'].iterrows():
+                    print(f"- {row['title']} ({row['content_category']}, Preferenze: {row['preferences']})")
+                while True:
+                    print("\n" + "="*60)
+                    print(" Menu di Selezione:")
+                    print("="*60)
+                    print(" 1. Seleziona un titolo dalla lista")
+                    print(" 2. Fare una nuova ricerca")
+                    print(" 3. Tornare al menu principale")
+                    print("="*60)
+                    title_choice = input(" Seleziona un'opzione (1-3): ").strip()
+
+                    if title_choice == '1':
+                        selected_title = input("\nInserisci solo il titolo esatto dalla lista, non includendo la categoria e la preferenza: ").strip().lower()
+                        exact_match = df[df['title'].str.lower() == selected_title]
+                        if not exact_match.empty:
+                            show_title_info(exact_match.iloc[0])
+                            rating = get_user_rating(exact_match.iloc[0]['title'])
+                            if rating <= 2:
+                                preferred_genre = input("\nSembra che questo titolo non ti sia piaciuto. Che genere preferisci? ")
+                                result = search_by_category(df, map_user_input_to_category(preferred_genre))
+                                if result == 'menu':
+                                    return 'menu'
+                                elif result == 'ricerca':
+                                    return 'ricerca'  # Torna a search_and_recommend_titoli_wrapper
+                            else:
+                                recommend_popular(df, exact_match.iloc[0]['content_category'], exclude_title=exact_match.iloc[0]['title'])
+                                result = post_rating_menu(df, os.path.dirname(os.path.abspath(__file__)))
+                                if result == 'menu':
+                                    return 'menu'
+                                elif result == 'ricerca':
+                                    return 'ricerca'  # Torna a search_and_recommend_titoli_wrapper
+                        else:
+                            print("\nTitolo non trovato nella lista suggerita. Riprova.")
+                    elif title_choice == '2':
+                        return 'ricerca'  # Torna a search_and_recommend_titoli_wrapper
+                    elif title_choice == '3':
+                        return 'menu'
+                    else:
+                        print("\nOpzione non valida. Per favore, seleziona 1, 2 o 3.")
+            else:
+                print(f"\nNessun risultato trovato per: {title_input}.")
+                continue
+        else:
+            print("\nOpzione non valida. Per favore, seleziona 1, 2 o 3.")
+
+
+def search_by_category(df, category=None):
+    while True:
+        if category is None:
+            print("\n" + "="*60)
+            print(" Seleziona una categoria:")
+            print("="*60)
+            print(" 1. Inserisci una categoria (es. 'Comedy', 'Drama', 'Horror')")
+            print(" 2. Scrivi 'ricerca' per tornare alla selezione di ricerca")
+            print(" 3. Scrivi 'menu' per tornare al menu principale")
+            print("="*60)
+            user_input = input(" >> ").strip().lower()
+            
+            if user_input == 'menu' or user_input == '3':
+                return 'menu'
+            elif user_input == 'ricerca' or user_input == '2':
+                return 'ricerca'  # Torna a search_and_recommend_titoli_wrapper
+            elif user_input == '1':
+                category_input = input(" Inserisci la categoria: ").strip().lower()
+                category = map_user_input_to_category(category_input)
+            else:
+                print("\nOpzione non valida. Per favore, seleziona 1, 2 o 3.")
+                continue
+        
+        category_recommendations = recommend_top_titles(df, content_category=category)
+        
+        if not category_recommendations.empty:
+            print(f"\nTitoli nella categoria '{category}':")
+            for idx, row in category_recommendations.iterrows():
+                print(f"- {row['title']} ({row['content_category']}, Preferenze: {row['preferences']})")
+
+            while True:
+                print("\n" + "="*60)
+                print(" Menu di Selezione:")
+                print("="*60)
+                print(" 1. Seleziona un titolo dalla lista")
+                print(" 2. Fare una nuova ricerca")
+                print(" 3. Tornare al menu principale")
+                print("="*60)
+                title_choice = input(" Seleziona un'opzione (1-3): ").strip()
+
+                if title_choice == '1':
+                    selected_title = input("\nInserisci solo il titolo esatto dalla lista, non includendo la categoria e la preferenza: ").strip().lower()
+                    exact_match = df[df['title'].str.lower() == selected_title]
+                    if not exact_match.empty:
+                        show_title_info(exact_match.iloc[0])
+                        rating = get_user_rating(exact_match.iloc[0]['title'])
+                        if rating <= 2:
+                            preferred_genre = input("\nSembra che questo titolo non ti sia piaciuto. Che genere preferisci? ")
+                            result = search_by_category(df, map_user_input_to_category(preferred_genre))
+                            if result == 'menu':
+                                return 'menu'
+                            elif result == 'ricerca':
+                                return 'ricerca'  # Torna a search_and_recommend_titoli_wrapper
+                        else:
+                            result = post_rating_menu(df, os.path.dirname(os.path.abspath(__file__)))
+                            if result == 'menu':
+                                return 'menu'
+                            elif result == 'ricerca':
+                                return 'ricerca'  # Torna a search_and_recommend_titoli_wrapper
+                    else:
+                        print("\nTitolo non trovato nella lista suggerita. Riprova.")
+                elif title_choice == '2':
+                    return 'ricerca'  # Torna a search_and_recommend_titoli_wrapper
+                elif title_choice == '3':
+                    return 'menu'
+                else:
+                    print("\nOpzione non valida. Per favore, seleziona 1, 2 o 3.")
+        else:
+            print(f"\nNessun risultato trovato per la categoria: {category}.")
+            return 'ricerca'  # Torna a search_and_recommend_titoli_wrapper
 
 
 
 def show_title_info(title_info):
-    """Mostra le informazioni di un titolo."""
-    print(f"\nTitolo: {title_info['title']}")
-    print("")
-    print(f"Regista: {title_info['director']}")
-    print("")
-    print(f"Cast: {title_info['cast']}")
-    print("")
-    print(f"Anno di rilascio: {title_info['release_year']}")
-    print("")
-    print(f"Categoria: {title_info['content_category']}")
-    print("")
-    print(f"Preferenze: {title_info['preferences']}")
-    print("")
+    """Mostra le informazioni di un titolo in un formato più compatto."""
+    print("\n" + "="*50)
+    print(f"Titolo       : {title_info['title']}")
+    print(f"Regista      : {title_info['director']}")
+    print(f"Cast         : {title_info['cast']}")
+    print(f"Anno         : {title_info['release_year']}")
+    print(f"Categoria    : {title_info['content_category']}")
+    print(f"Preferenze   : {title_info['preferences']}")
+    print("="*50)
 
 def get_user_rating(title):
     """Chiede all'utente di valutare un titolo."""
@@ -127,7 +236,7 @@ def get_user_rating(title):
 
 def recommend_popular(df, category, exclude_title=None):
     """Raccomanda titoli popolari basati sulla categoria, escludendo il titolo corrente."""
-    print(f"\n Dato che ti è piaciuto '{exclude_title}',\n ti raccomandiamo titoli apparenti alla categoria {category}: \n")
+    print(f"\n Dato che ti è piaciuto '{exclude_title}',\n ti raccomandiamo titoli nella categoria '{category}': \n")
     
     # Filtro per categoria, escludendo il titolo corrente
     filtered_df = df[df['content_category'].str.contains(category, case=False, na=False)]
@@ -147,19 +256,20 @@ def recommend_popular(df, category, exclude_title=None):
     else:
         for idx, row in popular_titles.iterrows():
             print(f"- {row['title']} ({row['content_category']}, Preferenze: {row['preferences']})")
+
             
-def show_statistics_menu(df, baseDir):
-    """Mostra il menu delle statistiche."""
+def post_rating_menu(df, baseDir):
+    """Mostra il menu post valutazione con varie opzioni."""
     while True:
-        print("\n" + "="*50)
-        print(" Menu delle Statistiche")
-        print("-"*50)
-        print(" 1) Visualizza i 5 titoli di film più popolari")
+        print("\n" + "="*60)
+        print(" Menu Post Valutazione")
+        print("="*60)
+        print(" 1) Visualizza i 5 film più popolari di Netflix")
         print(" 2) Visualizza i 5 titoli di serie TV più popolari")
-        print(" 3) Visualizza i generi più popolari di Netflix")
+        print(" 3) Visualizza le categorie più popolari su Netflix")
         print(" 4) Nuova ricerca")
-        print(" 5) Torna al menu pricipale")
-        print("="*50)
+        print(" 5) Torna al menu principale")
+        print("="*60)
         
         choice = input(" Seleziona un'opzione (1-5): ").strip()
         
@@ -170,11 +280,17 @@ def show_statistics_menu(df, baseDir):
         elif choice == '3':
             show_most_popular_genres(df, baseDir)
         elif choice == '4':
-            return 'ricerca'  # Torna alla funzione di ricerca
+            from main import search_and_recommend_titoli_wrapper  # Import locale per evitare circolare
+            search_and_recommend_titoli_wrapper(baseDir)  
+            return 'ricerca'  
         elif choice == '5':
-            return 'menu'  # Torna al menu pr
+            from main import display_menu  # Import locale per evitare circolare
+            display_menu()
+            return 'menu'  
         else:
             print(" Selezione non valida. Riprova.")
+
+
 
 def show_top_movies(dataframe):
     """Mostra i 5 titoli di film più popolari."""
@@ -253,5 +369,3 @@ def recommend_top_titles(dataframe, content_category=None, top_n=10):
     # Restituisce solo i dati senza stampare
     top_recommendations = recommendations.sort_values(by='preferences', ascending=False).head(top_n)
     return top_recommendations
-
-

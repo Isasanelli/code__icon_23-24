@@ -5,9 +5,10 @@ from preprocess_data import preprocess_data
 from create_embedding import create_embeddings_pipeline
 from analyze_data import analyze_data
 from cross_validation import cross_validate_models
+
 from supervised import supervised_learning
 from generate_prolog_files import generate_prolog_files
-from search_and_recommendation import map_user_input_to_category, recommend_popular, search_title_with_suggestions, recommend_top_titles, show_title_info, get_user_rating, show_statistics_menu
+from search_and_recommendation import search_by_category, search_by_title
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 is_classification_done = False
@@ -50,15 +51,13 @@ def kb(baseDir):
     print_section_header("KB in Prolog generata con successo.")
 
 def search_and_recommend_titoli_wrapper(baseDir):
-    # Verifica se la classificazione è stata eseguita
     df_path = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
     if not os.path.exists(df_path):
-        print("\nErrore: La classificazione non è stata eseguita. \nEsegui prima la classificazione per avere accesso alla funzionalità di ricerca e raccomandazione.")
-        return 'menu' 
-    
-    # Carica il DataFrame
+        print("\nErrore: La classificazione non è stata eseguita.")
+        return 'menu'  # Torna al menu principale
+
     df = pd.read_csv(df_path)
-    
+
     while True:
         try:
             print("\n" + "="*50)
@@ -75,116 +74,20 @@ def search_and_recommend_titoli_wrapper(baseDir):
             elif user_input == "2":
                 result = search_by_category(df)
             elif user_input == "3":
-                return 'menu'
+                display_menu()
+                return 'menu'  # Torna al menu principale
             else:
-                print("\n Opzione non valida. Per favore scegli 1, 2 o 3.")
+                print("\nOpzione non valida. Per favore scegli 1, 2 o 3.")
                 continue
-            
+
             if result == 'menu':
-                return
+                return 'menu'  # Torna al menu principale
             elif result == 'ricerca':
                 continue
         except Exception as e:
             print(f"\nErrore durante la ricerca e raccomandazione: {e}")
-        return 'menu'
+            return 'menu'  # Torna al menu principale
 
-
-
-def search_by_title(df):
-    while True:
-        print("\n" + "="*50)
-        print (" Puoi: ")
-        print("-"*50)
-        print(" • Scrivere un titolo come nell'esempio --> (es. 'Grey's Anatomy', 'Breaking Bad', 'Game of Thrones')")
-        print("")
-        print("-"*20 + "Oppure:"+ "-"*20)
-        print("")
-        print(" • Scrivere 'ricerca' per tornare alla selezione di ricerca")
-        print("")
-        print(" • Scrivere 'menu' per tornare al menu principale")
-        print("="*50)
-        user_input = input(" >> ").strip().lower() 
-
-        if user_input == 'menu':
-            return 'menu'
-        elif user_input == 'ricerca':
-            return 'ricerca'
-        
-        title_info = search_title_with_suggestions(df, user_input)
-        
-        if 'exact_match' in title_info:
-            show_title_info(title_info['exact_match'].iloc[0])
-            rating = get_user_rating(title_info['exact_match'].iloc[0]['title'])
-            if rating <= 2:
-                preferred_genre = input("\n Sembra che questo titolo non ti sia piaciuto. Che genere preferisci? ")
-                search_by_category(df, map_user_input_to_category(preferred_genre))
-            else:
-                # Se il rating è da 3 a 5, raccomanda titoli simili
-                recommend_popular(df, title_info['exact_match'].iloc[0]['content_category'], exclude_title=title_info['exact_match'].iloc[0]['title'])
-                user_input = show_statistics_menu(df, os.path.dirname(os.path.abspath(__file__)))
-                if user_input == 'menu':
-                    return 'menu'  # Torna al menu principale
-                elif user_input == 'ricerca':
-                    return 'ricerca' 
-            break
-        elif 'suggestions' in title_info:
-            print("\n Titolo non trovato, ma abbiamo trovato questi suggerimenti:")
-            for row in title_info['suggestions'].iterrows():
-                print(f"- {row['title']} ({row['content_category']}, Preferenze: {row['preferences']})")
-        else:
-            print(f"\n Nessun risultato trovato per: {user_input}.")
-            break
-        
-def search_by_category(df, category=None):
-    if category is None:
-        print("\n" + "="*50)
-        print (" Puoi: ")
-        print("-"*50)
-        print(" • Scrivere una categoria come nell'esempio --> (es. 'Comedy', 'Drama', 'Horror')")
-        print("")
-        print("-"*20 + "Oppure:"+ "-"*20)
-        print("")
-        print(" • Scrivere 'ricerca' per tornare alla selezione di ricerca")
-        print("")
-        print(" • Scrivere 'menu' per tornare al menu principale")
-        print("="*50)
-        user_input = input(" >> ").strip().lower()
-        
-        if user_input == 'menu':
-            return 'menu'
-        elif user_input == 'ricerca':
-            return 'ricerca'
-        
-        category = map_user_input_to_category(user_input)
-    
-    category_recommendations = recommend_top_titles(df, content_category=category)
-    
-    if not category_recommendations.empty:
-        print(f"\nTitoli nella categoria '{category}':")
-        for idx, row in category_recommendations.iterrows():
-            print(f"- {row['title']} ({row['content_category']}, Preferenze: {row['preferences']})")
-    else:
-        print(f"\nNessun risultato trovato per la categoria: {category}.")
-    
-    while True:
-        print("\n" + "="*50)
-        print(" Menu di Selezione")
-        print("-"*50)
-        print(" 1) Scrivere un titolo ")
-        print(" 2) Fare una nuova ricerca")
-        print(" 3) Tornare al menu principale")
-        print("="*50)
-        title_choice = input(" Seleziona un'opzione (1-3): ").strip()
-
-        if title_choice == '1':
-            search_by_title(df)
-            break
-        elif title_choice == '2':
-            return 'ricerca'
-        elif title_choice == '3':
-            return 'menu'
-        else:
-            print("\n Opzione non valida. Riprova.")
 
 
 def display_menu():
@@ -214,7 +117,7 @@ if __name__ == "__main__":
             elif choice == '2':
                 result = search_and_recommend_titoli_wrapper(baseDir)
                 if result == 'menu':
-                    continue 
+                    continue  # Torna al display_menu
             elif choice == '3':
                 kb(baseDir)
             elif choice == '4':
