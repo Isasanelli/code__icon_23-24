@@ -9,7 +9,7 @@ Questo progetto si focalizza sulla creazione di un sistema di classificazione e 
 
 - **Preprocessing dei Dati**: Pulizia e trasformazione dei dati per prepararli alla fase di machine learning.
 - **Creazione di Embeddings**: Generazione di rappresentazioni numeriche per i titoli e le categorie.
-- **Classificazione Supervisionata**: Addestramento di vari modelli di classificazione (Decision Tree, Random Forest, SVM, XGBoost, MLP) e validazione incrociata per garantire risultati robusti.
+- **Classificazione Supervisionata**: Addestramento di vari modelli di classificazione (Decision Tree, Random Forest,XGBoost) e validazione incrociata per garantire risultati robusti.
 - **Raccomandazione**: Sistema di raccomandazione basato su titolo e categoria, con feedback dell'utente per migliorare la precisione delle raccomandazioni.
 - **Generazione della KB in Prolog**: Creazione automatica di una KB basata sui risultati del machine learning, che include fatti e regole per il ragionamento.
 - **Interfaccia Utente da Terminale**: Navigazione semplice con menu per eseguire tutte le operazioni principali.
