@@ -20,7 +20,7 @@ from generate_prolog_files import generate_prolog_files
 
 def load_processed_data(filepath):
     """Carica i dati preprocessati dal file CSV e restituisce un DataFrame."""
-    return pd.read_csv(filepath)
+    return pd.read_csv(filepath, encoding='utf-8')
 
 def preprocess_data(df):
     """Preprocessa il DataFrame per l'apprendimento supervisionato."""
@@ -102,8 +102,6 @@ def train_and_evaluate_model(model, X, y, model_name, model_output_base_dir, plo
     recall = recall_score(y, y_pred)
     print_model_performance(model_name, scores, roc_auc, f1, precision, recall)
 
-    # Initialize report_df to avoid reference before assignment
-    report_df = None
 
     if len(y_pred) > 0:
         report = classification_report(y, y_pred, output_dict=True)
@@ -130,58 +128,7 @@ def apply_standard_scaler(X):
     scaler = StandardScaler()
     return scaler.fit_transform(X)
 
-def linear_regression_analysis(df, output_dir):
-    """Applica la regressione lineare e salva i risultati."""
-    X = df['release_year'].values.reshape(-1, 1)
-    y = df['release_year'].values  
-    
-    # Normalizzazione dei dati
-    X_scaled = apply_standard_scaler(X)
-    
-    linear_regressor = LinearRegression()
-    linear_regressor.fit(X_scaled, y)
-    y_pred_linear = linear_regressor.predict(X_scaled)
-    
-    linear_mse = mean_squared_error(y, y_pred_linear)
-    print(f"Linear Regression MSE: {linear_mse}")
-    
-    plt.figure(figsize=(10, 6))
-    plt.scatter(X, y, color='black', label='Data Points')
-    plt.plot(X, y_pred_linear, color='blue', label='Linear Regression')
-    plt.title('Linear Regression on Release Year Over Time')
-    plt.xlabel('Year of Release')
-    plt.ylabel('Release Year')  
-    plt.legend()
-    plt.savefig(os.path.join(output_dir, 'linear_regression.png'))
-    plt.show()
 
-def polynomial_regression_analysis(df, output_dir):
-    """Applica la regressione polinomiale e salva i risultati."""
-    X = df['release_year'].values.reshape(-1, 1)
-    y = df['release_year'].values  
-    
-    # Normalizzazione dei dati
-    X_scaled = apply_standard_scaler(X)
-    
-    polynomial_features = PolynomialFeatures(degree=3)
-    X_poly = polynomial_features.fit_transform(X_scaled)
-    
-    poly_regressor = LinearRegression()
-    poly_regressor.fit(X_poly, y)
-    y_pred_poly = poly_regressor.predict(X_poly)
-    
-    poly_mse = mean_squared_error(y, y_pred_poly)
-    print(f"Polynomial Regression MSE: {poly_mse}")
-    
-    plt.figure(figsize=(10, 6))
-    plt.scatter(X, y, color='black', label='Data Points')
-    plt.plot(X, y_pred_poly, color='red', label='Polynomial Regression')
-    plt.title('Polynomial Regression on Release Year Over Time')
-    plt.xlabel('Year of Release')
-    plt.ylabel('Release Year')  # Aggiorna l'etichetta
-    plt.legend()
-    plt.savefig(os.path.join(output_dir, 'polynomial_regression.png'))
-    plt.show()
 
 def plot_learning_curves_with_table(model, X, y, model_name, plot_output_dir, report_df):
     """Genera e salva le curve di apprendimento per un modello, includendo una tabella con i risultati."""
@@ -260,16 +207,6 @@ def supervised_learning(baseDir):
 
     for model_name, model in models.items():
         train_and_evaluate_model(model, X_train, y_train, model_name, model_output_base_dir, plot_output_base_dir)
-
-    # Analisi di regressione
-    regression_output_dir = os.path.join(plot_output_base_dir, 'regression_analysis')
-    os.makedirs(regression_output_dir, exist_ok=True)
-    
-    # Eseguire la regressione lineare
-    linear_regression_analysis(df, regression_output_dir)
-    
-    # Eseguire la regressione polinomiale
-    polynomial_regression_analysis(df, regression_output_dir)
     
     # Generazione del file Prolog KB
     generate_prolog_files(baseDir)

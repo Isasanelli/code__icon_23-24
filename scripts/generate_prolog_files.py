@@ -1,20 +1,23 @@
+import re
 import pandas as pd
 import os
 
 def load_processed_data(filepath):
-    return pd.read_csv(filepath)
+    return pd.read_csv(filepath, encoding='utf-8')
+
 
 def generate_prolog_facts(df, column, fact_name, output_file):
-    with open(output_file, 'a') as f:
+    with open(output_file, 'a', encoding='utf-8') as f:
         for _, row in df.iterrows():
-            value = row[column].replace("'", "").replace(" ", "_")
+            value = re.sub(r'[^\x00-\x7F]+', '', row[column].replace("'", "").replace(" ", "_"))
             f.write(f"{fact_name}('{value}').\n")
 
 def generate_prolog_rules(df, output_file):
-    with open(output_file, 'a') as f:
+    with open(output_file, 'a', encoding='utf-8') as f:
         f.write("\n% Regole per raccomandare i contenuti in base alla categoria\n")
         for category in df['content_category'].unique():
             f.write(f"recommend(X) :- content_category(X, '{category}'), user_likes_category('{category}').\n")
+
 
 def generate_prolog_files(baseDir):
     """Funzione principale per generare i file Prolog."""

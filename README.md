@@ -15,22 +15,32 @@ Questo progetto si focalizza sulla creazione di un sistema di classificazione e 
 - **Interfaccia Utente da Terminale**: Navigazione semplice con menu per eseguire tutte le operazioni principali.
 
 ## Struttura del Progetto
-
+```
 CODE_ICON_23-24/
 │
-├── .idea/
-├── .venv/
 ├── data/
 │   └── netflix_titles.csv
 │
 ├── results/
 │   ├── models/
 │   │   └── supervised/
+|   |           ├── AdaBoost/
+|   |           ├── DecisionTree/
+|   |           ├── K-NN/
+|   |           ├── RandomForest/
+|   |           ├── XGBoost/
+|   |
 │   ├── visualizations/
 │   │   ├── analyze_data/
 │   │   ├── cross_validation/
 │   │   ├── statistic_recommander/
 │   │   └── supervised/
+|              ├── AdaBoost/
+|              ├── DecisionTree/
+|              ├── K-NN/
+|              ├── RandomForest/
+|              ├── XGBoost/
+|              
 │
 ├── scripts/
 │   ├── __pycache__/
@@ -46,7 +56,7 @@ CODE_ICON_23-24/
 ├── .gitignore
 ├── README.md
 └── requirements.txt
-
+```
 
 ## Requisiti
 

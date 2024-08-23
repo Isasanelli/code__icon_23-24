@@ -44,7 +44,6 @@ def preprocess_data(baseDir):
 
     # Caricamento del dataset con encoding UTF-8
     df = pd.read_csv(filepath, encoding='utf-8')
-    df.replace("\u011f", "g", inplace=True)
     df = clean_data(df)
 
     # Salvataggio del dataset preprocessato con encoding UTF-8

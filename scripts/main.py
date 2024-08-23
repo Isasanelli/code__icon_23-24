@@ -12,11 +12,15 @@ from search_and_recommendation import map_user_input_to_category, search_title_w
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 is_classification_done = False
 
-
 def check_classification_status(baseDir):
+    """Verifica se la classificazione è stata eseguita controllando la presenza dei file essenziali."""
     content_embeddings_path = os.path.join(baseDir, '..', 'data', 'content_category_embeddings.npy')
     title_embeddings_path = os.path.join(baseDir, '..', 'data', 'title_embeddings.npy')
-    return os.path.exists(content_embeddings_path) and os.path.exists(title_embeddings_path)
+
+    if os.path.exists(content_embeddings_path) and os.path.exists(title_embeddings_path):
+        return True
+    else:
+        return False
 
 def classificazione(baseDir):
     global is_classification_done
@@ -38,11 +42,14 @@ def classificazione(baseDir):
         is_classification_done = False
 
 def search_and_recommend_titoli_wrapper(baseDir):
-    if not is_classification_done:
-        print("Errore: La classificazione non è stata eseguita. Esegui prima la classificazione per ricercare e raccomandare titoli.")
+    # Verifica se la classificazione è stata eseguita
+    df_path = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
+    if not os.path.exists(df_path):
+        print("Errore: La classificazione non è stata eseguita. \nEsegui prima la classificazione per avere accesso alla funzionalità di ricerca e raccomandazione.")
         return
     
-    df = pd.read_csv(os.path.join(baseDir, '..', 'data', 'processed_data.csv'))
+    # Carica il DataFrame
+    df = pd.read_csv(df_path)
     
     while True:
         try:
@@ -66,6 +73,7 @@ def search_and_recommend_titoli_wrapper(baseDir):
         except Exception as e:
             print(f"Errore durante la ricerca e raccomandazione: {e}")
 
+
 def kb(baseDir):
     # Verifica se la classificazione è stata eseguita
     processed_data_path = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
@@ -79,11 +87,11 @@ def kb(baseDir):
 
 def search_by_title(df):
     while True:
-        user_input = input("\nInserisci un titolo (es. 'Grey's Anatomy', 'The Godfather') o 'back' per tornare alla selezione di ricerca, o 'menu' per tornare al menu principale: ").strip().lower()
+        user_input = input("\nInserisci un titolo (es. 'Grey's Anatomy', 'Our Godfather'),\n'ricerca' per tornare alla selezione di ricerca,\n'menu' per tornare al menu principale: ").strip().lower()
         
         if user_input == 'menu':
             return 'menu'
-        elif user_input == 'back':
+        elif user_input == 'ricerca':
             return 'ricerca'
         
         title_info = search_title_with_suggestions(df, user_input)
@@ -111,7 +119,7 @@ def search_by_title(df):
 
 def search_by_category(df, category=None):
     if category is None:
-        user_input = input("\nInserisci una categoria (es. 'Comedy', 'Drama', 'Horror'), 'ricerca' per tornare alla selezione di ricerca, o 'menu' per tornare al menu principale: ").strip().lower()
+        user_input = input("\nInserisci una categoria (es. 'Comedy', 'Drama', 'Horror'),\n'ricerca' per tornare alla selezione di ricerca,\n'menu' per tornare al menu principale: ").strip().lower()
         
         if user_input == 'menu':
             return 'menu'
@@ -145,6 +153,7 @@ def search_by_category(df, category=None):
             return 'menu'
         else:
             print("Opzione non valida. Riprova.")
+
 
 def display_menu():
     print("\nMenu di Selezione:")
