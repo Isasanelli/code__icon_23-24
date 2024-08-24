@@ -5,49 +5,48 @@ import os
 def load_processed_data(filepath):
     return pd.read_csv(filepath, encoding='utf-8')
 
-
-def generate_prolog_facts(df, column, fact_name, output_file):
+def generate_prolog_facts(df, output_file):
+    content_categories = []
+    preferences = []
+    
+    for _, row in df.iterrows():
+        title = re.sub(r'[^\x00-\x7F]+', '', row['title'].replace("'", "").replace(" ", "_"))
+        category = re.sub(r'[^\x00-\x7F]+', '', row['content_category'].replace("'", "").replace(" ", "_"))
+        preference = re.sub(r'[^\x00-\x7F]+', '', str(row['preferences']).replace("'", "").replace(" ", "_"))
+        
+        content_categories.append(f"content_category('{title}', '{category}').\n")
+        preferences.append(f"preference_for('{title}', '{preference}').\n")
+    
     with open(output_file, 'a', encoding='utf-8') as f:
-        for _, row in df.iterrows():
-            value = re.sub(r'[^\x00-\x7F]+', '', row[column].replace("'", "").replace(" ", "_"))
-            f.write(f"{fact_name}('{value}').\n")
+        f.write("% Fatti generati automaticamente dai dati\n\n")
+        f.writelines(content_categories)
+        f.writelines(preferences)
 
 def generate_prolog_rules(df, output_file):
-    with open(output_file, 'a', encoding='utf-8') as f:
-        f.write("\n% Regole per raccomandare i contenuti in base alla categoria\n")
-        for category in df['content_category'].unique():
-            f.write(f"recommend(X) :- content_category(X, '{category}'), user_likes_category('{category}').\n")
-
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write("% Regole per raccomandare i contenuti in base alla categoria e preferenze\n")
+        
+        for _, row in df.iterrows():
+            title = re.sub(r'[^\x00-\x7F]+', '', row['title'].replace("'", "").replace(" ", "_"))
+            category = re.sub(r'[^\x00-\x7F]+', '', row['content_category'].replace("'", "").replace(" ", "_"))
+            preference = re.sub(r'[^\x00-\x7F]+', '', str(row['preferences']).replace("'", "").replace(" ", "_"))
+            
+            f.write(f"recommend('{title}') :- content_category('{title}', '{category}'), preference_for('{title}', '{preference}').\n")
 
 def generate_prolog_files(baseDir):
-    """Funzione principale per generare i file Prolog."""
-    filepath = os.path.join(baseDir,'..' ,'data', 'processed_data.csv')
+    filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
     df = load_processed_data(filepath)
 
-    # Percorso di output per i file Prolog
-    prolog_output_dir = os.path.join(baseDir, '..' ,'results', 'prolog')
+    prolog_output_dir = os.path.join(baseDir, '..', 'results', 'prolog')
     os.makedirs(prolog_output_dir, exist_ok=True)
 
-    # File di output Prolog
-    prolog_file_path = os.path.join(prolog_output_dir, 'knowledge_base_fact.pl')
-
-    # Inizializzazione del file
-    with open(prolog_file_path, 'w') as f:
+    prolog_facts_path = os.path.join(prolog_output_dir, 'knowledge_base_fact.pl')
+    with open(prolog_facts_path, 'w') as f:
         f.write("% Fatti generati automaticamente dai dati\n\n")
-
-    # Generazione dei fatti per Prolog
-    generate_prolog_facts(df, 'title', 'title', prolog_file_path)
-    generate_prolog_facts(df, 'content_category', 'content_category', prolog_file_path)
+    generate_prolog_facts(df, prolog_facts_path)
     
-    # Se il CSV contiene colonne per rating, type, director e preference
-    if 'rating' in df.columns:
-        generate_prolog_facts(df, 'rating', 'rating', prolog_file_path)
-    if 'type' in df.columns:
-        generate_prolog_facts(df, 'type', 'type', prolog_file_path)
-    if 'preference' in df.columns:
-        generate_prolog_facts(df, 'preference', 'preference_for', prolog_file_path)
-    
-    # Generazione delle regole per Prolog
-    generate_prolog_rules(df, prolog_file_path)
+    prolog_rules_path = os.path.join(prolog_output_dir, 'knowledge_base_rules.pl')
+    generate_prolog_rules(df, prolog_rules_path)
 
-    print(f"File Prolog generati e salvati in {prolog_file_path}")
+    print(f"Fatti Prolog generati e salvati in {prolog_facts_path}")
+    print(f"Regole Prolog generate e salvate in {prolog_rules_path}")

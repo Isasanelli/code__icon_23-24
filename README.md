@@ -9,7 +9,7 @@ Questo progetto si focalizza sulla creazione di un sistema di classificazione e 
 
 - **Preprocessing dei Dati**: Pulizia e trasformazione dei dati per prepararli alla fase di machine learning.
 - **Creazione di Embeddings**: Generazione di rappresentazioni numeriche per i titoli e le categorie.
-- **Classificazione Supervisionata**: Addestramento di vari modelli di classificazione (Decision Tree, Random Forest,XGBoost) e validazione incrociata per garantire risultati robusti.
+- **Classificazione Supervisionata**: Addestramento di vari modelli di classificazione (Decision Tree, Random Forest, XGBoost) e validazione incrociata per garantire risultati robusti.
 - **Raccomandazione**: Sistema di raccomandazione basato su titolo e categoria, con feedback dell'utente per migliorare la precisione delle raccomandazioni.
 - **Generazione della KB in Prolog**: Creazione automatica di una KB basata sui risultati del machine learning, che include fatti e regole per il ragionamento.
 - **Interfaccia Utente da Terminale**: Navigazione semplice con menu per eseguire tutte le operazioni principali.
@@ -40,8 +40,11 @@ CODE_ICON_23-24/
 |              ├── K-NN/
 |              ├── RandomForest/
 |              ├── XGBoost/
-|              
-│
+|
+├── prolog/
+│   ├── knowledge_base_fact.pl
+│   ├── knowledge_base_rules.pl
+|
 ├── scripts/
 │   ├── __pycache__/
 │   ├── analyze_data.py
@@ -111,9 +114,39 @@ CODE_ICON_23-24/
 - **Ricerca e Raccomandazione**: Inserisci un titolo o una categoria per ricevere raccomandazioni personalizzate.
 - **Knowledge Base**: La KB in Prolog verrà generata automaticamente dopo la classificazione, permettendo di effettuare interrogazioni basate sui fatti e le regole generate.
 
+## Utilizzo della Knowledge Base in Prolog
+
+Dopo aver generato la KB in Prolog, puoi utilizzare SWI-Prolog per caricare i file e eseguire query sulla base di conoscenza generata. Segui questi passi:
+
+1. **Avvia SWI-Prolog** e naviga nella directory contenente i file della KB:
+   ```prolog
+   ?- cd('D:/code__icon_23-24/results/prolog').
+   ```
+
+2. **Carica i file Prolog**:
+   ```prolog
+   ?- consult('knowledge_base_fact.pl').
+   ?- consult('knowledge_base_rules.pl').
+   ```
+
+3. **Esegui query per ottenere raccomandazioni**:
+   ```prolog
+   ?- recommend(X).
+   ```
+   Questo comando restituirà un solo titolo raccomandato in base alle regole definite nella KB.\
+   Se vogliamo visualizzare più titoli, basti semplicemente inserire un `( ; )` per ogni titolo mostrato. \
+   Premere successivamente il `( . )` per terminare
+
+4. **Debugging e Tracciamento**:
+   Se hai bisogno di vedere come Prolog risolve una query, puoi utilizzare il comando `trace.`:
+   ```prolog
+   ?- trace.
+   ?- recommend(X).
+   ```
+
 ## Collaboratori
 
-Belforte Matteo
+Belforte Matteo \
 Sasanelli Ilenia
 
 
