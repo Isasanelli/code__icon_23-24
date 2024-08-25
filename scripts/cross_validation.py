@@ -26,8 +26,6 @@ def plot_confusion_matrix(y_true, y_pred, output_dir):
     disp.plot(cmap=plt.cm.Blues)
     
     plt.title('Confusion Matrix')
-    plt.show()
-
     plot_path = os.path.join(output_dir, 'confusion_matrix.png')
     plt.savefig(plot_path, bbox_inches='tight')
     plt.close()
@@ -46,7 +44,6 @@ def plot_roc_curve(y_true, y_prob, output_dir):
     plt.ylabel('True Positive Rate')
     plt.title('Receiver Operating Characteristic')
     plt.legend(loc="lower right")
-    plt.show()
 
     plot_path = os.path.join(output_dir, 'roc_curve.png')
     plt.savefig(plot_path, bbox_inches='tight')
@@ -61,12 +58,12 @@ def plot_prediction_distribution(y_true, y_pred, output_dir):
     plt.xlabel('Class')
     plt.ylabel('Frequency')
     plt.legend()
-    plt.show()
 
     plot_path = os.path.join(output_dir, 'prediction_distribution.png')
     plt.savefig(plot_path, bbox_inches='tight')
     plt.close()
     print(f"Prediction distribution plot saved in {plot_path}")
+
 
 def cross_validate_models(baseDir):
     filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
