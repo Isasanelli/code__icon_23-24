@@ -5,14 +5,6 @@
 
 Questo progetto si focalizza sulla creazione di un sistema di classificazione e raccomandazione per i titoli più popolari presenti su Netflix, basato su tecniche di Machine Learning e su una Knowledge Base (KB) sviluppata in Prolog. Il sistema consente di preprocessare i dati, creare embeddings, addestrare modelli di classificazione supervisionati, generare raccomandazioni basate sulle preferenze dell'utente, e infine, generare automaticamente una KB in Prolog per supportare il ragionamento simbolico.
 
-## Funzionalità Principali
-
-- **Preprocessing dei Dati**: Pulizia e trasformazione dei dati per prepararli alla fase di machine learning.
-- **Creazione di Embeddings**: Generazione di rappresentazioni numeriche per i titoli e le categorie.
-- **Classificazione Supervisionata**: Addestramento di vari modelli di classificazione (Decision Tree, Random Forest, XGBoost) e validazione incrociata per garantire risultati robusti.
-- **Raccomandazione**: Sistema di raccomandazione basato su titolo e categoria, con feedback dell'utente per migliorare la precisione delle raccomandazioni.
-- **Generazione della KB in Prolog**: Creazione automatica di una KB basata sui risultati del machine learning, che include fatti e regole per il ragionamento.
-- **Interfaccia Utente da Terminale**: Navigazione semplice con menu per eseguire tutte le operazioni principali.
 
 ## Struttura del Progetto
 ```
@@ -60,18 +52,54 @@ CODE_ICON_23-24/
 ├── README.md
 └── requirements.txt
 ```
+## Descrizione struttura del progetto
+
+- **data/**: Contiene i file di dati necessari per il progetto.
+  - `netflix_titles.csv`: Dataset originale dei titoli.
+  - `processed_data.csv`: Dataset preprocessato.
+  - `content_category_embeddings.npy`, `title_embeddings.npy`: Embeddings generati dalle pipeline di creazione degli embeddings.
+
+- **results/**: Contiene i risultati del progetto.
+  - **models/supervised/**: Modelli di apprendimento supervisionato.
+    - `AdaBoost/`
+    - `DecisionTree/`
+    - `KNN/`
+    - `RandomForest/`
+    - `XGBoost/`
+  - **prolog/**: File della knowledge base Prolog.
+    - `knowledge_base_fact.pl`: Fatti generati dai dati preprocessati.
+    - `knowledge_base_rules.pl`: Regole generate per la raccomandazione dei contenuti.
+  - **visualizations/**: Grafici e visualizzazioni generate durante l'analisi e la validazione incrociata.
+    - `analyze_data/`: Grafici generati durante l'analisi dei dati.
+    - `cross_validation/`: Visualizzazioni generate durante la validazione incrociata.
+    - `statistic_recommander/`: Grafici relativi alle raccomandazioni statistiche.
+
+- **scripts/**: Contiene gli script Python principali per l'elaborazione e l'analisi dei dati.
+  - `analyze_data.py`: Script per l'analisi esplorativa dei dati.
+  - `create_embedding.py`: Script per la generazione degli embeddings utilizzando SpaCy.
+  - `cross_validation.py`: Script per eseguire la validazione incrociata dei modelli di apprendimento supervisionato.
+  - `generate_prolog_files.py`: Script per la generazione di fatti e regole in Prolog.
+  - `main.py`: Script principale che gestisce il flusso dell'intero progetto.
+  - `preprocess_data.py`: Script per il preprocessing dei dati.
+  - `search_and_recommendation.py`: Script per la ricerca e raccomandazione di contenuti.
+  - `supervised.py`: Script per l'apprendimento supervisionato e la valutazione dei modelli.
+
+
 
 ## Requisiti
 
 - **Python 3.12.5**
-- Librerie Python:
-  - `pandas`
-  - `numpy`
-  - `matplotlib`
-  - `scikit-learn`
-  - `imblearn`
-  - `xgboost`
-  - `nltk` (se necessario per l'elaborazione del testo)
+Per eseguire il progetto, assicurati di avere installato i seguenti pacchetti Python, elencati in `requirements.txt`:
+
+- `pandas`
+- `numpy`
+- `scikit-learn`
+- `matplotlib`
+- `seaborn`
+- `spacy`
+- `xgboost`
+- `imblearn`
+  
 - **SWI-Prolog** (per eseguire la KB generata in Prolog) versione 8.0.3-1
   
 - Installare
@@ -92,35 +120,36 @@ CODE_ICON_23-24/
    pip install -r requirements.txt
    ```
 
-3. **Prepara i dati:**
-   Assicurati che i dati necessari siano presenti nella directory `data` con il nome `processed_data.csv`.
-
 ## Esecuzione del Progetto
 
 1. **Avvia il programma principale:**
    ```bash
    python main.py
    ```
+## Menu Principale
 
-2. **Opzioni disponibili nel Menu principale:**
-   - `Classificazione dei Film e Serie TV`: Esegue il preprocessing, l'addestramento dei modelli, e la validazione incrociata.
-   - `Ricerca Film o Serie TV`: Permette di cercare titoli o categorie e ricevere raccomandazioni personalizzate.
-   - `Generazione della KB`: Genera la Knowledge Base in Prolog basata sui risultati del machine learning.
-   - `Uscita`: Termina l'esecuzione del programma.
+Il file `main.py` fornisce un'interfaccia interattiva per eseguire le diverse fasi del progetto. Le opzioni del menu includono:
+
+- Classificazione dei Film e Serie TV
+- Ricerca e Raccomandazioni
+- Visualizza Titoli Più Popolari
+- Generazione della KB
+- Uscita
 
 ## Come Usare il Sistema
 
 - **Classificazione**: Avvia il processo di classificazione dei dati, che include la creazione di embeddings, l'addestramento di modelli, e la validazione dei risultati.
 - **Ricerca e Raccomandazione**: Inserisci un titolo o una categoria per ricevere raccomandazioni personalizzate.
+- **Visualizza Titoli più popolari**: Permette di visualizzare a schermo quali sono i titoli più popolari su netflix, sia per i film che per le serie tv. Per tanto mostra anche i generi più popolari 
 - **Knowledge Base**: La KB in Prolog verrà generata automaticamente dopo la classificazione, permettendo di effettuare interrogazioni basate sui fatti e le regole generate.
 
 ## Utilizzo della Knowledge Base in Prolog
 
-Dopo aver generato la KB in Prolog, puoi utilizzare SWI-Prolog per caricare i file e eseguire query sulla base di conoscenza generata. Segui questi passi:
+Dopo aver generato la KB in Prolog, puoi utilizzare SWI-Prolog ( versione 8.0.3) per caricare i file e eseguire query sulla base di conoscenza generata. Segui questi passi:
 
 1. **Avvia SWI-Prolog** e naviga nella directory contenente i file della KB:
    ```prolog
-   ?- cd('D:/code__icon_23-24/results/prolog').
+   ?- cd('posizione della tua direcotory di progetto /results/prolog').
    ```
 
 2. **Carica i file Prolog**:
@@ -131,18 +160,14 @@ Dopo aver generato la KB in Prolog, puoi utilizzare SWI-Prolog per caricare i fi
 
 3. **Esegui query per ottenere raccomandazioni**:
    ```prolog
-   ?- recommend(X).
+   ?- recommend(X). o recommend('Titolo') 
    ```
-   Questo comando restituirà un solo titolo raccomandato in base alle regole definite nella KB.\
-   Se vogliamo visualizzare più titoli, basti semplicemente inserire un `( ; )` per ogni titolo mostrato. \
-   Premere successivamente il `( . )` per terminare
+Questo comando restituirà un solo titolo raccomandato in base alle regole definite nella KB.\
+Se vogliamo visualizzare più titoli, basti semplicemente inserire un `( ; )` per ogni titolo mostrato. \
+Premere successivamente il `( . )` per terminare \
+Nel caso di un solo titolo indicato `recommend('Titolo')`, ci dirà la quesry che quel titolo può essere raccomando o no. Dipende se è presente nel dataset
 
-4. **Debugging e Tracciamento**:
-   Se hai bisogno di vedere come Prolog risolve una query, puoi utilizzare il comando `trace.`:
-   ```prolog
-   ?- trace.
-   ?- recommend(X).
-   ```
+**Per altri comandi, consulatare il file.txt chiamato `esempio_comando_prolog.txt`**
 
 ## Collaboratori
 
