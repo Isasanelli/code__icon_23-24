@@ -24,14 +24,23 @@ def generate_prolog_facts(df, output_file):
 
 def generate_prolog_rules(df, output_file):
     with open(output_file, 'w', encoding='utf-8') as f:
-        f.write("% Regole per raccomandare i contenuti in base alla categoria e preferenze\n")
-        
+        f.write("% Regole per raccomandare i contenuti in base alla categoria, preferenze e generi popolari\n")
+
+        # Raccomandazione basata su categoria e preferenze
         for _, row in df.iterrows():
             title = re.sub(r'[^\x00-\x7F]+', '', row['title'].replace("'", "").replace(" ", "_"))
             category = re.sub(r'[^\x00-\x7F]+', '', row['content_category'].replace("'", "").replace(" ", "_"))
             preference = re.sub(r'[^\x00-\x7F]+', '', str(row['preferences']).replace("'", "").replace(" ", "_"))
             
             f.write(f"recommend('{title}') :- content_category('{title}', '{category}'), preference_for('{title}', '{preference}').\n")
+        
+        # Raccomandazione basata sui generi popolari
+        for _, row in df.iterrows():
+            title = re.sub(r'[^\x00-\x7F]+', '', row['title'].replace("'", "").replace(" ", "_"))
+            category = re.sub(r'[^\x00-\x7F]+', '', row['content_category'].replace("'", "").replace(" ", "_"))
+            
+            f.write(f"recommend_genre('{title}') :- content_category('{title}', '{category}'), popular_genre('{category}', _).\n")
+
 
 def generate_prolog_files(baseDir):
     filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
@@ -43,6 +52,7 @@ def generate_prolog_files(baseDir):
     prolog_facts_path = os.path.join(prolog_output_dir, 'knowledge_base_fact.pl')
     with open(prolog_facts_path, 'w') as f:
         f.write("% Fatti generati automaticamente dai dati\n\n")
+    
     generate_prolog_facts(df, prolog_facts_path)
     
     prolog_rules_path = os.path.join(prolog_output_dir, 'knowledge_base_rules.pl')

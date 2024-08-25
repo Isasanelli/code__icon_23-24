@@ -41,13 +41,18 @@ def classificazione(baseDir):
 def kb(baseDir):
     """Genera la Knowledge Base in Prolog."""
     processed_data_path = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
+    
     if not os.path.exists(processed_data_path):
         print("\nErrore: La classificazione non è stata eseguita. Esegui prima la classificazione per generare la KB.")
         return
 
     print_section_header("Generazione della KB in Prolog...")
+    
+    # Chiamata per generare i file della Knowledge Base
     generate_prolog_files(baseDir)
+    
     print_section_header("KB in Prolog generata con successo.")
+
 
 def visualizza_titoli_piu_popolari(df, baseDir):
     """Visualizza i titoli più popolari e genera grafici associati."""
