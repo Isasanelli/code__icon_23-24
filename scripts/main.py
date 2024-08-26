@@ -7,7 +7,7 @@ from analyze_data import analyze_data
 from cross_validation import cross_validate_models
 from supervised import supervised_learning
 from generate_prolog_files import generate_prolog_files
-from search_and_recommendation import search_and_recommend, load_processed_data, load_embeddings, show_top_movies, show_top_tv_shows, show_most_popular_genres
+from search_and_recommendation import search_and_recommend, load_processed_data, load_embeddings, show_top_movies, show_top_tv_shows 
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 is_classification_done = False
@@ -58,7 +58,7 @@ def visualizza_titoli_piu_popolari(df, baseDir):
     """Visualizza i titoli più popolari e genera grafici associati."""
     show_top_movies(df)
     show_top_tv_shows(df)
-    show_most_popular_genres(df, baseDir)
+
 
 def display_menu():
     """Mostra il menu principale."""

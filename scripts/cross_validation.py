@@ -28,6 +28,7 @@ def plot_confusion_matrix(y_true, y_pred, output_dir):
     plt.title('Confusion Matrix')
     plot_path = os.path.join(output_dir, 'confusion_matrix.png')
     plt.savefig(plot_path, bbox_inches='tight')
+    plt.show()
     plt.close()
     print(f"Confusion matrix saved in {plot_path}")
 
@@ -47,6 +48,7 @@ def plot_roc_curve(y_true, y_prob, output_dir):
 
     plot_path = os.path.join(output_dir, 'roc_curve.png')
     plt.savefig(plot_path, bbox_inches='tight')
+    plt.show()
     plt.close()
     print(f"ROC curve saved in {plot_path}")
 
@@ -61,6 +63,7 @@ def plot_prediction_distribution(y_true, y_pred, output_dir):
 
     plot_path = os.path.join(output_dir, 'prediction_distribution.png')
     plt.savefig(plot_path, bbox_inches='tight')
+    plt.show()
     plt.close()
     print(f"Prediction distribution plot saved in {plot_path}")
 

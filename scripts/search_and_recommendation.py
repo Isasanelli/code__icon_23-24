@@ -284,6 +284,7 @@ def map_user_input_to_category(user_input):
         'commedia': 'Comedies',
         'comedy': 'Comedies',
         'comico': 'Comedies',
+        'stand-up': 'Stand-Up Comedy',
         'documentario': 'Documentaries',
         'documentari': 'Documentaries',
         'docuserie': 'Docuseries',
@@ -388,31 +389,4 @@ def show_top_tv_shows(dataframe):
         plt.show()
         plt.close()
 
-
-def show_most_popular_genres(dataframe, baseDir):
-    """Mostra i generi più popolari su Netflix e genera un grafico a torta."""
-    save_dir = os.path.join(baseDir, '..', 'results', 'visualizations', 'statistic_recommander')
-    os.makedirs(save_dir, exist_ok=True)
-    
-    genre_counts = dataframe['content_category'].value_counts().head(10)
-    
-    print("\nGeneri più popolari su Netflix:")
-    for genre, count in genre_counts.items():
-        print(f"{genre}: {count} titoli")
-    
-    # Genera il grafico a torta per i generi più popolari
-    plt.figure(figsize=(10, 7))
-    plt.pie(genre_counts, labels=genre_counts.index, autopct='%1.1f%%', startangle=140, colors=plt.cm.plasma(np.linspace(0, 1, len(genre_counts))))
-    plt.title('Generi più popolari su Netflix', fontsize=16, color='blue')
-
-    # Salva il grafico prima di mostrarlo
-    save_path = os.path.join(save_dir, 'most_popular_genre_pie.png')
-    plt.savefig(save_path)
-    print(f"Grafico salvato in: {save_path}")
-
-    # Mostra il grafico
-    plt.show()
-
-    # Chiudi il grafico per liberare la memoria
-    plt.close()
 

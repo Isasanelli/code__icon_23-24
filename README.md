@@ -101,8 +101,11 @@ Per eseguire il progetto, assicurati di avere installato i seguenti pacchetti Py
 - `imblearn`
   
 - **SWI-Prolog** (per eseguire la KB generata in Prolog) versione 8.0.3-1
+  ```
+   pip install spacy
+    ```
   
-- Installare
+- Dopo aver installato spacy, installare
    ```
    python -m spacy download en_core_web_sm
    ```
