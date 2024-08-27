@@ -162,20 +162,19 @@ Dopo aver generato la KB in Prolog, puoi utilizzare SWI-Prolog ( versione 8.0.3)
 
 2. **Carica i file Prolog**:
    ```prolog
-   ?- consult('knowledge_base_fact.pl').
-   ?- consult('knowledge_base_rules.pl').
+   ?- [facts].  % Carica il file dei fatti
+   ?- [rules].  % Carica il file delle regole
    ```
 
 3. **Esegui query per ottenere raccomandazioni**:
    ```prolog
-   ?- recommend(X). o recommend('Titolo') 
+   ?- recommend(Content).
    ```
-Questo comando restituirà un solo titolo raccomandato in base alle regole definite nella KB.\
-Se vogliamo visualizzare più titoli, basti semplicemente inserire un `( ; )` per ogni titolo mostrato. \
+Questo comando restituirà  più titoli. 
+Inserendo il comando  `( ; )`  verranno mostrati più titoli. \
 Premere successivamente il `( . )` per terminare \
-Nel caso di un solo titolo indicato `recommend('Titolo')`, ci dirà la quesry che quel titolo può essere raccomando o no. Dipende se è presente nel dataset
 
-**Per altri comandi, consulatare il file.txt chiamato `esempio_comando_prolog.txt`**
+**Per altri comandi, consulatare il file.txt chiamato `comandi_console_prolog.txt` presente nella cartella documenti**
 
 ## Collaboratori
 
