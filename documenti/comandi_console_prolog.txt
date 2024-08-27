@@ -1,0 +1,39 @@
+# Comandi Prolog Console
+
+## Comandi di avvio e caricamento
+?- cd('D:/code__icon_23-24/results/prolog').
+?- [facts].  % Carica il file dei fatti
+?- [rules].  % Carica il file delle regole
+
+## Raccomandare Contenuti con Alta Preferenza UQuesta query restituisce tutti i contenuti con una preferenza pari o superiore a 80):
+?- recommend(Content).
+
+
+## Visualizzare Tutti i Fatti sui Contenuti:
+?- content(Title, Category, Year, Preference).
+
+## Trovare Contenuti con una Specifica Categoria/Titolo/ Anno ( non serve mettere '' )/Preferenza ( anche qui non bisogna mettere ' ' ):
+?- content(Title, 'TV_Show_-_International_TV_Shows,_Romantic_TV_Shows,_TV_Comedies', Year, Preference).
+
+## Trovare Contenuti con una Preferenza Superiore( o inferiore) a un Valore:
+?- content(Title, Category, Year, Preference), Preference < 80.
+
+?- content(Title, Category, Year, Preference), Preference > 80.
+
+## Trovare Contenuti  appartententi alla stessa categoria :
+?- similar_content('Glee', SimilarTitle). % riporta la lista dei titoli simili al titolo scelto. 
+
+se vogliamo verificare che due titoli sono simili, basa solo inserire due titoli. 
+
+
+## Raccomandare Contenuti Basati su Genere ( questa funzionalità permette all'utente di visualizzare i generi dei film o serie tv):
+?- recommend_by_genre(Genre, Content).
+
+## Raccomandare Contenuti Basati su Anno di Rilascio:
+?- recommend_by_year(2021, Content).
+
+## Raccomandare Contenuti Basati su Genere e Anno di Rilascio ( ricerca specifica):
+?- recommend_by_genre_year('Movie_-_Comedies', 2010, Content).
+
+inserendo nelle parentesi anche solo (Genre, 2010, Content), verrà mostrata la lista dei vari generi e contenuti appartenenti a quell'anno 
+
