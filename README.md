@@ -11,13 +11,12 @@ Questo progetto si focalizza sulla creazione di un sistema di classificazione e 
 CODE_ICON_23-24/
 │
 ├── data/
-│     ├── netflix_titles.csv
-│     └──  comandi_console_prolgo.txt
-|
-|
+│   └── netflix_titles.csv
+│
 |── documenti
-|     └── documentazione_netflix
-| 
+|     ├── documentazione_progetto
+|     └── comandi_console_prolog
+|     
 |
 ├── results/
 │   ├── models/
