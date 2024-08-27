@@ -1,88 +1,122 @@
-import re
-import pandas as pd
 import os
+import pandas as pd
 
 def load_processed_data(filepath):
     return pd.read_csv(filepath, encoding='utf-8')
 
-def generate_prolog_facts(df, output_file):
-    content_categories = []
-    preferences = []
-    popular_genres = {}
-    
-    for _, row in df.iterrows():
-        title = re.sub(r'[^\x00-\x7F]+', '', row['title'].replace("'", "").replace(" ", "_"))
-        category = re.sub(r'[^\x00-\x7F]+', '', row['content_category'].replace("'", "").replace(" ", "_"))
-        preference = re.sub(r'[^\x00-\x7F]+', '', str(row['preferences']).replace("'", "").replace(" ", "_"))
+def update_preference(df, title, user_rating):
+    if user_rating <= 2:
+        feedback_type = 'negative'
+        adjustment = 10  # Valore da sottrarre
+    elif user_rating >= 3:
+        feedback_type = 'positive'
+        adjustment = 10  # Valore da aggiungere
 
-        content_categories.append(f"content_category('{title}', '{category}').\n")
-        preferences.append(f"preference_for('{title}', '{preference}').\n")
+    current_preference = df.loc[df['title'] == title, 'preferences'].values[0]
 
-        # Traccia i generi popolari
-        if category not in popular_genres:
-            popular_genres[category] = 1
-        else:
-            popular_genres[category] += 1
-    
-    with open(output_file, 'w', encoding='utf-8') as f:
-        f.write("% Fatti generati automaticamente dai dati\n\n")
-        f.writelines(content_categories)
-        f.writelines(preferences)
+    if feedback_type == 'positive':
+        new_preference = min(100, current_preference + adjustment)
+    elif feedback_type == 'negative':
+        new_preference = max(0, current_preference - adjustment)
 
-        # Aggiungi i fatti per popular_genre/2
-        f.write("\n% Fatti generati automaticamente per i generi popolari\n")
-        for genre, count in popular_genres.items():
-            f.write(f"popular_genre('{genre}', {count}).\n")
+    df.loc[df['title'] == title, 'preferences'] = new_preference
+    return df
 
-def generate_prolog_rules(df, output_file):
-    with open(output_file, 'w', encoding='utf-8') as f:
-        f.write("% Regole per interagire con l'utente e fornire suggerimenti\n\n")
+def append_new_content(df, title, category, year, preference):
+    new_row = {'title': title, 'content_category': category, 'release_year': year, 'preferences': preference}
+    df = df.append(new_row, ignore_index=True)
+    return df
 
-        # Regola dinamica basata sull'input dell'utente
-        f.write("recommend(Title) :-\n")
-        f.write("    ask_user('Qual è il tuo genere preferito? ', Genere),\n")
-        f.write("    find_content(Title, Genere).\n\n")
-
-        # Raccomandazione basata su categoria e preferenze
-        f.write("% Raccomandazione basata su categoria e preferenze\n")
+def update_prolog_facts(df, prolog_facts_path):
+    with open(prolog_facts_path, 'w', encoding='utf-8') as f:
+        f.write("% Fatti aggiornati sui contenuti\n\n")
         for _, row in df.iterrows():
-            title = re.sub(r'[^\x00-\x7F]+', '', row['title'].replace("'", "").replace(" ", "_"))
-            category = re.sub(r'[^\x00-\x7F]+', '', row['content_category'].replace("'", "").replace(" ", "_"))
-            preference = re.sub(r'[^\x00-\x7F]+', '', str(row['preferences']).replace("'", "").replace(" ", "_"))
-            
-            f.write(f"recommend('{title}') :- content_category('{title}', '{category}'), preference_for('{title}', '{preference}').\n")
-        
-        # Regola find_content
-        f.write("\nfind_content(Title, Genere) :-\n")
-        f.write("    content_category(Title, Genere).\n\n")
-        
-        # Regola ask_user
-        f.write("ask_user(Prompt, Response) :-\n")
-        f.write("    write(Prompt),\n")
-        f.write("    read(Response).\n\n")
+            title = row['title'].replace("'", "\\'").replace(" ", "_")
+            category = row['content_category'].replace("'", "\\'").replace(" ", "_")
+            year = row['release_year']
+            preference = row['preferences']
+            f.write(f"content('{title}', '{category}', {year}, {preference}).\n")
 
-        # Raccomandazione basata sui generi popolari
-        f.write("% Raccomandazione basata sui generi popolari\n")
+def user_feedback_flow(baseDir, title, user_rating, new_content=False, category=None, year=None):
+    filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
+    prolog_facts_path = os.path.join(baseDir, '..', 'results', 'prolog', 'facts.pl')
+    
+    df = load_processed_data(filepath)
+    
+    if new_content:
+        df = append_new_content(df, title, category, year, user_rating)
+    else:
+        df = update_preference(df, title, user_rating)
+    
+    update_prolog_facts(df, prolog_facts_path)
+    
+    df.to_csv(filepath, index=False, encoding='utf-8')
+    print(f"Feedback integrato per '{title}' e KB aggiornata.")
+
+def generate_prolog_facts(df, prolog_facts_path):
+    with open(prolog_facts_path, 'w', encoding='utf-8') as f:
+        f.write("% Fatti sui contenuti\n\n")
         for _, row in df.iterrows():
-            title = re.sub(r'[^\x00-\x7F]+', '', row['title'].replace("'", "").replace(" ", "_"))
-            category = re.sub(r'[^\x00-\x7F]+', '', row['content_category'].replace("'", "").replace(" ", "_"))
-            
-            f.write(f"recommend_genre('{title}') :- content_category('{title}', '{category}'), popular_genre('{category}', _).\n")
+            title = row['title'].replace("'", "\\'").replace(" ", "_")
+            category = row['content_category'].replace("'", "\\'").replace(" ", "_")
+            year = row['release_year']
+            preference = row['preferences']
+            f.write(f"content('{title}', '{category}', {year}, {preference}).\n")
+
+def generate_prolog_rules(prolog_rules_path):
+    with open(prolog_rules_path, 'w', encoding='utf-8') as f:
+        f.write("% Regole per la raccomandazione dei contenuti\n\n")
+        
+        # Regola per raccomandare contenuti con alta preferenza
+        f.write("recommend(Content) :-\n")
+        f.write("    content(Content, _, _, Preference),\n")
+        f.write("    Preference >= 80.\n\n")
+        
+        # Regola per raccomandare contenuti simili in base alla categoria
+        f.write("similar_content(Title1, Title2) :-\n")
+        f.write("    content(Title1, Category, _, _),\n")
+        f.write("    content(Title2, Category, _, _),\n")
+        f.write("    Title1 \\= Title2.\n\n")
+
+        # Raccomandazione di contenuti simili con preferenza alta
+        f.write("recommend_similar(Title, RecommendedTitle) :-\n")
+        f.write("    similar_content(Title, RecommendedTitle),\n")
+        f.write("    content(RecommendedTitle, _, _, Preference),\n")
+        f.write("    Preference >= 60.\n\n")
+
+        # Raccomandare contenuti basati su un genere specifico (predeterminato o dato dall'utente)
+        f.write("recommend_by_genre(Genre, Content) :-\n")
+        f.write("    content(Content, Genre, _, Preference),\n")
+        f.write("    Preference >= 50.\n\n")
+        
+        # Regola per raccomandare contenuti basati sull'anno di rilascio
+        f.write("recommend_by_year(Year, Content) :-\n")
+        f.write("    content(Content, _, Year, Preference),\n")
+        f.write("    Preference >= 50.\n\n")
+        
+        # Regola per raccomandare contenuti basati su una combinazione di genere e anno
+        f.write("recommend_by_genre_year(Genre, Year, Content) :-\n")
+        f.write("    content(Content, Genre, Year, Preference),\n")
+        f.write("    Preference >= 50.\n\n")
 
 def generate_prolog_files(baseDir):
+    if baseDir is None:
+        raise ValueError("Il percorso baseDir è None. Assicurati di passare un percorso valido.")
+
     filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"Il file {filepath} non esiste. Verifica il percorso e riprova.")
+    
     df = load_processed_data(filepath)
 
     prolog_output_dir = os.path.join(baseDir, '..', 'results', 'prolog')
     os.makedirs(prolog_output_dir, exist_ok=True)
 
-    # Genera il file dei fatti
     prolog_facts_path = os.path.join(prolog_output_dir, 'facts.pl')
-    generate_prolog_facts(df, prolog_facts_path)
+    prolog_rules_path = os.path.join(prolog_output_dir, 'rules.pl')
 
-    # Genera il file delle regole
-    prolog_rules_path = os.path.join(baseDir, '..', 'results', 'prolog', 'rules.pl')
-    generate_prolog_rules(df, prolog_rules_path)
+    generate_prolog_facts(df, prolog_facts_path)
+    generate_prolog_rules(prolog_rules_path)
 
     print(f"Fatti Prolog generati e salvati in {prolog_facts_path}")
     print(f"Regole Prolog generate e salvate in {prolog_rules_path}")

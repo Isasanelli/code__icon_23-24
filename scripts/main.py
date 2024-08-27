@@ -51,6 +51,7 @@ def kb(baseDir):
     # Chiamata per generare i file della Knowledge Base
     generate_prolog_files(baseDir)
     
+    
     print_section_header("KB in Prolog generata con successo.")
 
 
