@@ -311,7 +311,8 @@ def map_user_input_to_category(user_input):
         'scientifico': 'Sci-Fi & Fantasy',
         'sci-fi': 'Sci-Fi & Fantasy',
         'fantastico': 'Sci-Fi & Fantasy',
-        'mistero': 'Mystery',
+        'musical': 'Music & Musicals',
+        'musica': 'Music & Musicals',
     }
 
     user_input = user_input.lower().strip()

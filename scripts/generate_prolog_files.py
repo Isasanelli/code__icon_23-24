@@ -4,24 +4,6 @@ import pandas as pd
 def load_processed_data(filepath):
     return pd.read_csv(filepath, encoding='utf-8')
 
-def update_preference(df, title, user_rating):
-    if user_rating <= 2:
-        feedback_type = 'negative'
-        adjustment = 10  # Valore da sottrarre
-    elif user_rating >= 3:
-        feedback_type = 'positive'
-        adjustment = 10  # Valore da aggiungere
-
-    current_preference = df.loc[df['title'] == title, 'preferences'].values[0]
-
-    if feedback_type == 'positive':
-        new_preference = min(100, current_preference + adjustment)
-    elif feedback_type == 'negative':
-        new_preference = max(0, current_preference - adjustment)
-
-    df.loc[df['title'] == title, 'preferences'] = new_preference
-    return df
-
 def append_new_content(df, title, category, year, preference):
     new_row = {'title': title, 'content_category': category, 'release_year': year, 'preferences': preference}
     df = df.append(new_row, ignore_index=True)
@@ -36,22 +18,6 @@ def update_prolog_facts(df, prolog_facts_path):
             year = row['release_year']
             preference = row['preferences']
             f.write(f"content('{title}', '{category}', {year}, {preference}).\n")
-
-def user_feedback_flow(baseDir, title, user_rating, new_content=False, category=None, year=None):
-    filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
-    prolog_facts_path = os.path.join(baseDir, '..', 'results', 'prolog', 'facts.pl')
-    
-    df = load_processed_data(filepath)
-    
-    if new_content:
-        df = append_new_content(df, title, category, year, user_rating)
-    else:
-        df = update_preference(df, title, user_rating)
-    
-    update_prolog_facts(df, prolog_facts_path)
-    
-    df.to_csv(filepath, index=False, encoding='utf-8')
-    print(f"Feedback integrato per '{title}' e KB aggiornata.")
 
 def generate_prolog_facts(df, prolog_facts_path):
     with open(prolog_facts_path, 'w', encoding='utf-8') as f:
