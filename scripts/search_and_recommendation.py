@@ -285,6 +285,7 @@ def map_user_input_to_category(user_input):
         'comedy': 'Comedies',
         'comico': 'Comedies',
         'stand-up': 'Stand-Up Comedy',
+        'stand-up comedy': 'Stand-Up Comedy',
         'documentario': 'Documentaries',
         'documentari': 'Documentaries',
         'docuserie': 'Docuseries',

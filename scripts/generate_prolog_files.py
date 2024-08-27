@@ -40,7 +40,19 @@ def generate_prolog_rules(df, output_file):
             category = re.sub(r'[^\x00-\x7F]+', '', row['content_category'].replace("'", "").replace(" ", "_"))
             
             f.write(f"recommend_genre('{title}') :- content_category('{title}', '{category}'), popular_genre('{category}', _).\n")
-
+        
+        # Regola dinamica basata sull'input dell'utente
+        f.write("\n% Regole dinamiche basate su input utente\n")
+        f.write("recommend(Title) :-\n")
+        f.write("    ask_user('Qual è il tuo genere preferito? ', Genere),\n")
+        f.write("    find_content(Title, Genere).\n\n")
+        
+        f.write("find_content(Title, Genere) :-\n")
+        f.write("    content_category(Title, Genere).\n\n")
+        
+        f.write("ask_user(Prompt, Response) :-\n")
+        f.write("    write(Prompt),\n")
+        f.write("    read(Response).\n")
 
 def generate_prolog_files(baseDir):
     filepath = os.path.join(baseDir, '..', 'data', 'processed_data.csv')
@@ -50,7 +62,7 @@ def generate_prolog_files(baseDir):
     os.makedirs(prolog_output_dir, exist_ok=True)
 
     prolog_facts_path = os.path.join(prolog_output_dir, 'knowledge_base_fact.pl')
-    with open(prolog_facts_path, 'w') as f:
+    with open(prolog_facts_path, 'w', encoding='utf-8') as f:
         f.write("% Fatti generati automaticamente dai dati\n\n")
     
     generate_prolog_facts(df, prolog_facts_path)
