@@ -66,10 +66,10 @@ CODE_ICON_23-24/
   - `content_category_embeddings.npy`, `title_embeddings.npy`: Embeddings generati dalle pipeline di creazione degli embeddings.
 
 - **documenti/** : 
-- `Documentazione progetto`: file in .pdf e .docx
-- `lista_categoria_prolog`: documento in .txt che contiene la lista di tutte le categorie presenti nel dataset da utilizzare sulla console prolog nella sezione 'Categoria'
-- `comandi_console_prolog`: documento in .txt che contiene la lista delle query da porre a prolog
-  
+   - `Documentazione progetto`: file in .pdf e .docx
+   - `lista_categoria_prolog`: documento in .txt che contiene la lista di tutte le categorie presenti nel dataset da utilizzare sulla console prolog nella sezione 'Categoria'
+   - `comandi_console_prolog`: documento in .txt che contiene la lista delle query da porre a prolog
+   
 - **results/**: Contiene i risultati del progetto.
   - **models/supervised/**: Modelli di apprendimento supervisionato.
     - `AdaBoost/`
