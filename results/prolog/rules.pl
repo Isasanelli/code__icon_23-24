@@ -1,4 +1,10 @@
-% Regole per raccomandare i contenuti in base alla categoria, preferenze e generi popolari
+% Regole per interagire con l'utente e fornire suggerimenti
+
+recommend(Title) :-
+    ask_user('Qual è il tuo genere preferito? ', Genere),
+    find_content(Title, Genere).
+
+% Raccomandazione basata su categoria e preferenze
 recommend('Dick_Johnson_Is_Dead') :- content_category('Dick_Johnson_Is_Dead', 'Movie_-_Documentaries'), preference_for('Dick_Johnson_Is_Dead', '62').
 recommend('Blood_&_Water') :- content_category('Blood_&_Water', 'TV_Show_-_International_TV_Shows,_TV_Dramas,_TV_Mysteries'), preference_for('Blood_&_Water', '76').
 recommend('Ganglands') :- content_category('Ganglands', 'TV_Show_-_Crime_TV_Shows,_International_TV_Shows,_TV_Action_&_Adventure'), preference_for('Ganglands', '57').
@@ -8809,6 +8815,15 @@ recommend('Zombie_Dumb') :- content_category('Zombie_Dumb', 'TV_Show_-_Kids_TV,_
 recommend('Zombieland') :- content_category('Zombieland', 'Movie_-_Comedies,_Horror_Movies'), preference_for('Zombieland', '66').
 recommend('Zoom') :- content_category('Zoom', 'Movie_-_Children_&_Family_Movies,_Comedies'), preference_for('Zoom', '49').
 recommend('Zubaan') :- content_category('Zubaan', 'Movie_-_Dramas,_International_Movies,_Music_&_Musicals'), preference_for('Zubaan', '48').
+
+find_content(Title, Genere) :-
+    content_category(Title, Genere).
+
+ask_user(Prompt, Response) :-
+    write(Prompt),
+    read(Response).
+
+% Raccomandazione basata sui generi popolari
 recommend_genre('Dick_Johnson_Is_Dead') :- content_category('Dick_Johnson_Is_Dead', 'Movie_-_Documentaries'), popular_genre('Movie_-_Documentaries', _).
 recommend_genre('Blood_&_Water') :- content_category('Blood_&_Water', 'TV_Show_-_International_TV_Shows,_TV_Dramas,_TV_Mysteries'), popular_genre('TV_Show_-_International_TV_Shows,_TV_Dramas,_TV_Mysteries', _).
 recommend_genre('Ganglands') :- content_category('Ganglands', 'TV_Show_-_Crime_TV_Shows,_International_TV_Shows,_TV_Action_&_Adventure'), popular_genre('TV_Show_-_Crime_TV_Shows,_International_TV_Shows,_TV_Action_&_Adventure', _).
@@ -17618,15 +17633,3 @@ recommend_genre('Zombie_Dumb') :- content_category('Zombie_Dumb', 'TV_Show_-_Kid
 recommend_genre('Zombieland') :- content_category('Zombieland', 'Movie_-_Comedies,_Horror_Movies'), popular_genre('Movie_-_Comedies,_Horror_Movies', _).
 recommend_genre('Zoom') :- content_category('Zoom', 'Movie_-_Children_&_Family_Movies,_Comedies'), popular_genre('Movie_-_Children_&_Family_Movies,_Comedies', _).
 recommend_genre('Zubaan') :- content_category('Zubaan', 'Movie_-_Dramas,_International_Movies,_Music_&_Musicals'), popular_genre('Movie_-_Dramas,_International_Movies,_Music_&_Musicals', _).
-
-% Regole dinamiche basate su input utente
-recommend(Title) :-
-    ask_user('Qual è il tuo genere preferito? ', Genere),
-    find_content(Title, Genere).
-
-find_content(Title, Genere) :-
-    content_category(Title, Genere).
-
-ask_user(Prompt, Response) :-
-    write(Prompt),
-    read(Response).
